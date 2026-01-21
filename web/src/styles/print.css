@@ -1,0 +1,161 @@
+/* Print styles for reports page */
+@media print {
+  /* Hide navigation and unnecessary elements */
+  .print-hide,
+  nav,
+  .navigation,
+  button:not(.print-keep),
+  .no-print {
+    display: none !important;
+  }
+
+  /* Ensure proper page layout */
+  body {
+    margin: 0;
+    padding: 20px;
+    font-size: 12pt;
+    line-height: 1.4;
+    color: black;
+    background: white;
+  }
+
+  /* Page breaks and layout */
+  .print-page-break {
+    page-break-before: always;
+  }
+
+  .print-no-break {
+    page-break-inside: avoid;
+  }
+
+  /* Tables for better printing */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    page-break-inside: auto;
+  }
+
+  table thead {
+    display: table-header-group;
+  }
+
+  table tbody {
+    display: table-row-group;
+  }
+
+  table tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  table th,
+  table td {
+    border: 1px solid #000;
+    padding: 8px;
+    text-align: left;
+    font-size: 11pt;
+  }
+
+  table th {
+    background-color: #f0f0f0;
+    font-weight: bold;
+  }
+
+  /* Headers and titles */
+  h1 {
+    font-size: 18pt;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  h2 {
+    font-size: 14pt;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #000;
+    padding-bottom: 5px;
+  }
+
+  /* Report metadata */
+  .print-header {
+    margin-bottom: 30px;
+    text-align: center;
+  }
+
+  .print-date {
+    font-size: 10pt;
+    color: #666;
+    margin-bottom: 10px;
+  }
+
+  /* Statistics boxes */
+  .print-stats {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+    border: 1px solid #000;
+    padding: 10px;
+  }
+
+  .print-stat-item {
+    text-align: center;
+  }
+
+  .print-stat-value {
+    font-size: 16pt;
+    font-weight: bold;
+  }
+
+  .print-stat-label {
+    font-size: 9pt;
+    color: #666;
+  }
+
+  /* User list specific styles */
+  .user-row {
+    page-break-inside: avoid;
+  }
+
+  .points-high {
+    font-weight: bold;
+  }
+
+  .points-zero {
+    color: #666;
+    font-style: italic;
+  }
+
+  /* Footer */
+  .print-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 9pt;
+    color: #666;
+    border-top: 1px solid #000;
+    padding-top: 5px;
+  }
+
+  /* Override any box shadows or backgrounds */
+  * {
+    box-shadow: none !important;
+    background-image: none !important;
+  }
+
+  /* Ensure text is black */
+  .text-gray-600,
+  .text-gray-700,
+  .text-gray-800,
+  .text-gray-900 {
+    color: black !important;
+  }
+
+  /* Remove rounded corners for print */
+  .rounded,
+  .rounded-lg,
+  .rounded-md {
+    border-radius: 0 !important;
+  }
+}
