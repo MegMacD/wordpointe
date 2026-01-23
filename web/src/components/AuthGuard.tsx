@@ -26,17 +26,18 @@ export default function AuthGuard({ children, requireAdmin = false }: AuthGuardP
       if (res.ok && data.user) {
         if (requireAdmin && data.user.role !== 'admin') {
           // User is logged in but not admin, redirect to home
-          router.push('/');
+          router.replace('/');
           return;
         }
+        // User is authenticated (leader or admin)
         setUser(data.user);
       } else {
         // Not logged in, redirect to login
-        router.push('/login');
+        router.replace('/login');
       }
     } catch (error) {
       // Error fetching auth, redirect to login
-      router.push('/login');
+      router.replace('/login');
     } finally {
       setLoading(false);
     }

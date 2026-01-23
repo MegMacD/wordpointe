@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { VerseRecord, SpendRecord, User, MemoryItem } from '@/lib/types';
+import AuthGuard from '@/components/AuthGuard';
 
 interface Message {
   type: 'success' | 'error';
   text: string;
 }
 
-export default function AdminRecordsPage() {
+function AdminRecordsPageContent() {
   const [verseRecords, setVerseRecords] = useState<(VerseRecord & { 
     memory_items?: MemoryItem; 
     users?: User 
@@ -475,5 +476,13 @@ export default function AdminRecordsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AdminRecordsPage() {
+  return (
+    <AuthGuard requireAdmin>
+      <AdminRecordsPageContent />
+    </AuthGuard>
   );
 }
