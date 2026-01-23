@@ -26,7 +26,6 @@ export interface MemoryItem {
   created_at: string;
   updated_at: string;
   bible_version?: string | null;
-  bible_version?: string | null;
 }
 
 export interface VerseRecord {
