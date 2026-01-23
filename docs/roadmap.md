@@ -23,8 +23,20 @@
 - ✅ On-demand verse fetching and storage
 
 ## v0.5 – Accounts & RLS
-- Real auth for leaders (Supabase Auth, e.g., email links or Google)
+- ✅ Real auth for leaders (simple password-based auth)
+- ✅ Role-based access (leader vs admin)
+- ✅ Login-only access (no public pages)
+- Admin UI for creating new users (leaders/admins)
+- Password reset functionality
 - Enable RLS with leader policies
+
+## v0.6 – Enhanced Security
+- First-login password change requirement
+- Password strength requirements
+- Session management UI (view/revoke sessions)
+- Audit log for user creation/modification
+- Two-factor authentication for admins
+- Account lockout after failed attempts
 
 ## Stretch / Future
 - Quick-add multi-item entry flow

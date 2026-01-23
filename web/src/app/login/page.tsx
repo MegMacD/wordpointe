@@ -19,7 +19,8 @@ export default function LoginPage() {
     const res = await fetch('/api/auth/me');
     const data = await res.json();
     if (data.user) {
-      router.push('/');
+      // Already logged in, redirect to home
+      router.replace('/');
     }
   };
 
@@ -40,7 +41,8 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (res.ok) {
-        router.push('/');
+        // Force a full page refresh to ensure auth state is updated
+        window.location.href = '/';
       } else {
         setError(data.error || 'Login failed');
       }
@@ -67,6 +69,18 @@ export default function LoginPage() {
         <p className="mb-8 text-center text-gray-600">
           Sign in to track Bible memory
         </p>
+
+        <div className="mb-6 rounded-2xl bg-blue-50 border border-blue-200 p-4 text-sm text-gray-700">
+          <div className="flex items-start">
+            <svg className="mr-2 mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+            </svg>
+            <div>
+              <p className="font-semibold mb-1">Leader or Admin Login Required</p>
+              <p className="text-gray-600">If you don't have login credentials, please contact your program administrator to get set up as a leader or admin.</p>
+            </div>
+          </div>
+        </div>
 
         {error && (
           <div className="mb-6 rounded-2xl bg-[#C97435]/10 border border-[#C97435]/30 p-4 text-sm text-gray-800">

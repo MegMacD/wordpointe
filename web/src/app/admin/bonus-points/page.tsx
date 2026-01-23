@@ -288,7 +288,7 @@ function BonusPointsPageContent() {
 
 export default function BonusPointsPage() {
   return (
-    <AuthGuard>
+    <AuthGuard requireAdmin>
       <BonusPointsPageContent />
     </AuthGuard>
   );

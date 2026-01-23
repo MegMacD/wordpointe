@@ -180,6 +180,15 @@ Once deployed, Vercel will give you a URL like: `https://wordpointe-xxxxx.vercel
 - **Symptom**: Error when typing custom reference
 - **Fix**: Verify Bible API is accessible (no API key needed, public API)
 
+### "Duplicate identifier 'bible_version'" Build Error
+- **Symptom**: TypeScript compilation fails with duplicate field error
+- **Fix**: This has been fixed in the latest code. Pull the latest changes and redeploy
+
+### Admin Login Flashes Then Returns to Login
+- **Symptom**: After entering admin credentials, page briefly flashes then returns to login
+- **Fix**: This has been fixed. Ensure you've deployed the latest code with auth improvements
+- Clear your browser cache and try again
+
 ---
 
 ## Next Steps After Deployment
