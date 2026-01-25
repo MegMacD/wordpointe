@@ -279,9 +279,12 @@ function RecordPageContent() {
       const data = await res.json();
 
       if (res.ok) {
+        const wasNewVerse = useCustomReference;
         setMessage({
           type: 'success',
-          text: `Recorded! +${data.points_awarded} points awarded.`,
+          text: wasNewVerse 
+            ? `New verse added and recorded! +${data.points_awarded} points awarded.`
+            : `Recorded! +${data.points_awarded} points awarded.`,
         });
         if (!useCustomReference) {
           addToRecentItems(selectedItemId);
@@ -423,7 +426,7 @@ function RecordPageContent() {
                 className={`rounded-xl px-3 py-1.5 text-sm font-medium transition-all ${
                   itemFilter === 'all'
                     ? 'bg-gradient-to-r from-[#D1DA8A] to-[#B8C76E] text-gray-800 shadow-md'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50'
                 }`}
               >
                 All Items ({memoryItems.length})
@@ -434,7 +437,7 @@ function RecordPageContent() {
                 className={`rounded-xl px-3 py-1.5 text-sm font-medium transition-all ${
                   itemFilter === 'verse'
                     ? 'bg-gradient-to-r from-[#D1DA8A] to-[#B8C76E] text-gray-800 shadow-md'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50'
                 }`}
               >
                 📖 Verses Only ({memoryItems.filter(i => i.type === 'verse').length})
@@ -445,7 +448,7 @@ function RecordPageContent() {
                 className={`rounded-xl px-3 py-1.5 text-sm font-medium transition-all ${
                   itemFilter === 'custom'
                     ? 'bg-gradient-to-r from-[#D1DA8A] to-[#B8C76E] text-gray-800 shadow-md'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50'
                 }`}
               >
                 📚 Books & More ({memoryItems.filter(i => i.type === 'custom').length})
@@ -458,7 +461,7 @@ function RecordPageContent() {
                       setSelectedItemId(recentMemoryItems[0].id);
                     }
                   }}
-                  className="rounded-xl px-3 py-1.5 text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition-all border border-blue-200"
+                  className="rounded-xl px-3 py-1.5 text-sm font-medium bg-[#DFA574]/10 text-[#C88A5E] hover:bg-[#DFA574]/20 transition-all border-2 border-[#DFA574]/30"
                 >
                   🕐 Recent ({recentMemoryItems.length})
                 </button>
