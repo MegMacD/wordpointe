@@ -98,6 +98,21 @@ export async function POST(request: NextRequest) {
       throw error;
     }
 
+    // Verify points didn't go negative after insertion
+    const newPoints = await getCurrentPoints(supabase, user_id);
+    if (newPoints < 0) {
+      // This shouldn't happen, but if it does, undo the spend
+      await supabase
+        .from('spend_records')
+        .update({ undone: true })
+        .eq('id', data.id);
+      
+      return NextResponse.json(
+        { error: `Transaction resulted in negative balance (${newPoints}). Spend has been cancelled. Please refresh and try again.` },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json(data as SpendRecord, { status: 201 });
   } catch (error: any) {
     if (error.message === 'Unauthorized') {

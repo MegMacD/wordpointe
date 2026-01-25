@@ -290,13 +290,13 @@ function UsersPageContent() {
         {/* Users List */}
         <div className="rounded-3xl border border-gray-200 bg-white p-6 sm:p-10 shadow-lg">
           <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center">
-              <div className="mr-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#B5CED8] to-[#9AB5C1] shadow-md">
+            <div className="flex items-start gap-3">
+              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#B5CED8] to-[#9AB5C1] shadow-md">
                 <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Users</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 font-[family-name:var(--font-quicksand)] leading-tight">Users</h1>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
               <input
@@ -316,67 +316,88 @@ function UsersPageContent() {
           </div>
 
           {loading ? (
-            <div className="text-center text-gray-600">Loading...</div>
+            <div className="text-center py-12 text-gray-600">
+              <svg className="mx-auto h-8 w-8 animate-spin text-[#B5CED8]" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <p className="mt-3 text-sm">Loading users...</p>
+            </div>
           ) : filteredUsers.length === 0 ? (
-            <div className="text-center text-gray-600">No users found</div>
+            <div className="text-center py-12">
+              <svg className="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+              </svg>
+              <p className="mt-3 text-gray-600">
+                {search ? 'No users match your search' : 'No users yet'}
+              </p>
+            </div>
           ) : (
-            <div className="overflow-x-auto rounded-2xl border-2 border-gray-200">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gradient-to-r from-[#B5CED8]/10 to-[#B5CED8]/5">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider text-gray-700">
-                      Name
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider text-gray-700">
-                      Role
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider text-gray-700">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 bg-white">
-                  {filteredUsers.map((user) => (
-                    <tr key={user.id} className="transition-colors hover:bg-[#B5CED8]/5">
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
-                        {user.name}
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                        {user.is_leader ? (
-                          <span className="inline-flex items-center rounded-xl bg-[#B5CED8]/20 px-3 py-1 text-xs font-medium text-gray-800">
-                            Leader
+            <div className="grid gap-2 sm:gap-3">
+              {filteredUsers.map((user) => (
+                <div
+                  key={user.id}
+                  className="group rounded-2xl border-2 border-gray-200 bg-white p-3 sm:p-4 shadow-sm transition-all hover:shadow-md hover:border-[#B5CED8]/40"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
+                    {/* User Info */}
+                    <div className="flex items-center space-x-3 min-w-0">
+                      <div className="flex-shrink-0 flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#B5CED8] to-[#9AB5C1] shadow-sm">
+                        <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="text-base font-semibold text-gray-900 truncate">
+                            {user.name}
+                          </h3>
+                          {user.is_leader && (
+                            <span className="inline-flex items-center rounded-lg bg-[#B5CED8]/20 px-2 py-0.5 text-xs font-medium text-gray-800 whitespace-nowrap">
+                              Leader
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Link
+                        href={`/users/${user.id}`}
+                        className="flex-1 sm:flex-none text-center rounded-xl bg-gradient-to-r from-[#B5CED8] to-[#9AB5C1] px-3 py-1.5 text-sm font-semibold text-gray-800 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+                      >
+                        View Details
+                      </Link>
+                      <button
+                        onClick={() => handleEditUser(user)}
+                        disabled={actionLoading === user.id}
+                        className="flex-1 sm:flex-none text-center rounded-xl border-2 border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px]"
+                      >
+                        {actionLoading === user.id ? (
+                          <span className="flex items-center justify-center">
+                            <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
                           </span>
                         ) : (
-                          <span className="text-gray-500">Kid</span>
+                          'Edit'
                         )}
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm">
-                        <div className="flex items-center space-x-3">
-                          <Link
-                            href={`/users/${user.id}`}
-                            className="font-medium text-[#B5CED8] hover:text-[#9AB5C1] transition-colors"
-                          >
-                            View
-                          </Link>
-                          <button
-                            onClick={() => handleEditUser(user)}
-                            disabled={actionLoading === user.id}
-                            className="font-medium text-[#9AB5C1] hover:text-[#7A9AA8] disabled:text-gray-400 transition-colors"
-                          >
-                            {actionLoading === user.id ? 'Loading...' : 'Edit'}
-                          </button>
-                          <button
-                            onClick={() => setDeleteConfirm(user.id)}
-                            className="font-medium text-[#C97435] hover:text-[#A85C28] transition-colors"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      </button>
+                      <button
+                        onClick={() => setDeleteConfirm(user.id)}
+                        className="rounded-xl border-2 border-[#C97435]/30 bg-white px-2.5 py-1.5 text-sm font-medium text-[#C97435] transition-all hover:bg-[#C97435]/5 hover:border-[#C97435]/50 min-h-[36px]"
+                        aria-label="Delete user"
+                      >
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>

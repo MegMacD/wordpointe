@@ -37,6 +37,14 @@ export interface VerseRecord {
   applied_multiplier: number;
   applied_promo: string | null;
   recorded_at: string;
+  memory_items?: {
+    id: string;
+    reference: string;
+    type: 'verse' | 'custom';
+    text: string | null;
+    points_first: number;
+    points_repeat: number;
+  };
 }
 
 export interface SpendRecord {

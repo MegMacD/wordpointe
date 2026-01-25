@@ -98,35 +98,54 @@ function BonusPointsPageContent() {
   }));
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
-      <div className="mb-6 flex items-center justify-between">
+    <div className="mx-auto max-w-4xl px-4 py-4 sm:py-8">
+      <div className="rounded-3xl border border-gray-200 bg-white p-6 sm:p-10 shadow-lg">
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#DFA574] to-[#C98F5F] shadow-md">
+              <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 font-[family-name:var(--font-quicksand)] leading-tight">Adjust Points</h1>
+              <p className="mt-1 text-sm text-gray-600">
+                Add or remove points for bonuses, corrections, or special occasions
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/admin/records"
+            className="rounded-xl border-2 border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 hover:shadow-sm"
+          >
+            View All Records
+          </Link>
+        </div>
+
+        {message && (
+          <div
+            className={`mb-6 rounded-2xl p-4 border ${
+              message.type === 'success'
+                ? 'bg-[#D1DA8A]/20 text-gray-800 border-[#D1DA8A]/30'
+                : 'bg-[#C97435]/10 text-gray-800 border-[#C97435]/30'
+            }`}
+          >
+            <div className="flex items-center">
+              {message.type === 'success' ? (
+                <svg className="mr-2 h-5 w-5 text-[#B8C76E]" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <svg className="mr-2 h-5 w-5 text-[#C97435]" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              )}
+              <span className="font-medium">{message.text}</span>
+            </div>
+          </div>
+        )}
+
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Adjust Points</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            Add or remove points for bonuses, corrections, legacy imports, or special occasions
-          </p>
-        </div>
-        <Link
-          href="/admin/records"
-          className="rounded-md bg-gray-600 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
-        >
-          View All Records
-        </Link>
-      </div>
-
-      {message && (
-        <div
-          className={`mb-6 rounded-md p-4 ${
-            message.type === 'success'
-              ? 'bg-green-50 text-green-800'
-              : 'bg-red-50 text-red-800'
-          }`}
-        >
-          {message.text}
-        </div>
-      )}
-
-      <div className="rounded-lg bg-white p-6 shadow">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* User Selection */}
           <div>
@@ -158,7 +177,7 @@ function BonusPointsPageContent() {
               id="category"
               value={category}
               onChange={(e) => setCategory(e.target.value as 'bonus' | 'correction' | 'other')}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              className="mt-1 block w-full rounded-xl border-2 border-gray-200 px-4 py-3 shadow-sm transition-colors focus:border-[#DFA574] focus:outline-none focus:ring-2 focus:ring-[#DFA574]/20"
               disabled={loading}
             >
               <option value="bonus">Bonus (special achievement or occasion)</option>
@@ -177,7 +196,7 @@ function BonusPointsPageContent() {
               id="points"
               value={pointsAwarded}
               onChange={(e) => setPointsAwarded(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              className="mt-1 block w-full rounded-xl border-2 border-gray-200 px-4 py-3 shadow-sm transition-colors focus:border-[#DFA574] focus:outline-none focus:ring-2 focus:ring-[#DFA574]/20"
               placeholder="Enter positive number to add, negative to deduct"
               disabled={loading}
               required
@@ -197,7 +216,7 @@ function BonusPointsPageContent() {
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               rows={3}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              className="mt-1 block w-full rounded-xl border-2 border-gray-200 px-4 py-3 shadow-sm transition-colors focus:border-[#DFA574] focus:outline-none focus:ring-2 focus:ring-[#DFA574]/20"
               placeholder="Explain why these points are being awarded (required for audit trail)"
               disabled={loading}
               required
@@ -236,7 +255,7 @@ function BonusPointsPageContent() {
                 setReason('');
                 setCategory('bonus');
               }}
-              className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="rounded-xl border-2 border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 hover:shadow-sm"
               disabled={loading}
             >
               Clear
@@ -244,7 +263,7 @@ function BonusPointsPageContent() {
             <button
               type="submit"
               disabled={loading || !selectedUserId || !pointsAwarded || !reason.trim()}
-              className="rounded-md bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:bg-gray-400"
+              className="rounded-xl bg-gradient-to-r from-[#DFA574] to-[#C98F5F] px-6 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
             >
               {loading ? 'Processing...' : 'Adjust Points'}
             </button>
@@ -252,35 +271,36 @@ function BonusPointsPageContent() {
         </form>
       </div>
 
-      {/* Help Section */}
-      <div className="mt-8 rounded-lg bg-gray-50 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">When to Use Point Adjustments</h2>
+        {/* Help Section */}
+        <div className="mt-8 rounded-2xl bg-gray-50 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-3">When to Use Point Adjustments</h2>
         <ul className="space-y-2 text-sm text-gray-700">
           <li className="flex items-start">
-            <svg className="mr-2 mt-0.5 h-5 w-5 text-blue-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="mr-2 mt-0.5 h-5 w-5 text-[#DFA574] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
             </svg>
             <span><strong>Bonus:</strong> Special achievements, birthdays, participation in events, or encouragement</span>
           </li>
           <li className="flex items-start">
-            <svg className="mr-2 mt-0.5 h-5 w-5 text-green-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="mr-2 mt-0.5 h-5 w-5 text-[#D1DA8A] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
             </svg>
             <span><strong>Correction:</strong> Fix errors in point tracking, restore accidentally lost points</span>
           </li>
           <li className="flex items-start">
-            <svg className="mr-2 mt-0.5 h-5 w-5 text-purple-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="mr-2 mt-0.5 h-5 w-5 text-[#B5CED8] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
             </svg>
-            <span><strong>Legacy Points:</strong> When creating a new user, add their points from the previous system (use the user creation form instead)</span>
+            <span><strong>Legacy Points:</strong> When creating a new user, add their points from the previous system (if not added during user creation)</span>
           </li>
           <li className="flex items-start">
-            <svg className="mr-2 mt-0.5 h-5 w-5 text-red-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="mr-2 mt-0.5 h-5 w-5 text-[#C98F5F] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
             </svg>
             <span><strong>Deductions:</strong> Use negative numbers to remove points (rare, but available if needed)</span>
           </li>
         </ul>
+        </div>
       </div>
     </div>
   );

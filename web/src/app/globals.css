@@ -164,6 +164,33 @@ select:focus-visible {
   }
 }
 
+/* Ensure user input text is clearly visible */
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+textarea,
+select {
+  color: var(--gray-900);
+}
+
+/* Ensure placeholder text is lighter but still readable */
+input::placeholder,
+textarea::placeholder {
+  color: #9CA3AF;
+  -webkit-text-fill-color: #9CA3AF;
+  opacity: 1;
+}
+
+/* Ensure disabled inputs are still readable but visually distinct */
+input:disabled,
+textarea:disabled,
+select:disabled {
+  color: var(--gray-700);
+  opacity: 0.75;
+}
+
 /* Improve text selection on mobile */
 * {
   -webkit-user-select: text;

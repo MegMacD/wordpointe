@@ -15,7 +15,7 @@ function HelpPageContent() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Quick Help Guide</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 font-[family-name:var(--font-quicksand)]">Quick Help Guide</h1>
           </div>
           <p className="text-gray-600">Everything you need to know to get started with Word Pointe</p>
         </div>
@@ -65,7 +65,7 @@ function HelpPageContent() {
 
             <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
               <div className="flex items-start">
-                <svg className="mr-2 mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="mr-2 mt-0.5 h-5 w-5 flex-shrink-0 text-[#B5CED8]" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                 </svg>
                 <div className="text-sm text-gray-700">
@@ -76,7 +76,7 @@ function HelpPageContent() {
 
             <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
               <div className="flex items-start">
-                <svg className="mr-2 mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="mr-2 mt-0.5 h-5 w-5 flex-shrink-0 text-[#DFA574]" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                 </svg>
                 <div className="text-sm text-gray-700">
@@ -111,7 +111,7 @@ function HelpPageContent() {
 
             <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
               <div className="flex items-start">
-                <svg className="mr-2 mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="mr-2 mt-0.5 h-5 w-5 flex-shrink-0 text-[#D1DA8A]" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                 </svg>
                 <div className="text-sm text-gray-700">

@@ -65,7 +65,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <h1 className="mb-2 text-center text-3xl font-bold text-gray-900">Welcome Back!</h1>
+        <h1 className="mb-2 text-center text-3xl font-bold text-gray-900 font-[family-name:var(--font-quicksand)]">Welcome Back!</h1>
         <p className="mb-8 text-center text-gray-600">
           Sign in to track Bible memory
         </p>
