@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { UserWithPoints, VerseRecord, SpendRecord } from '@/lib/types';
+import { UserWithPoints, VerseRecord, SpendRecord, BonusRecord } from '@/lib/types';
 import AuthGuard from '@/components/AuthGuard';
 
 function UserDetailPageContent() {
@@ -12,6 +12,7 @@ function UserDetailPageContent() {
   const [user, setUser] = useState<UserWithPoints | null>(null);
   const [records, setRecords] = useState<VerseRecord[]>([]);
   const [spends, setSpends] = useState<SpendRecord[]>([]);
+  const [bonuses, setBonuses] = useState<BonusRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'records' | 'spends'>('records');
 
@@ -20,6 +21,7 @@ function UserDetailPageContent() {
       fetchUser();
       fetchRecords();
       fetchSpends();
+      fetchBonuses();
     }
   }, [userId]);
 
@@ -45,6 +47,14 @@ function UserDetailPageContent() {
     const data = await res.json();
     if (res.ok) {
       setSpends(data.items || []);
+    }
+  };
+
+  const fetchBonuses = async () => {
+    const res = await fetch(`/api/bonus?user_id=${userId}`);
+    const data = await res.json();
+    if (res.ok) {
+      setBonuses(data.items || []);
     }
   };
 
@@ -84,7 +94,7 @@ function UserDetailPageContent() {
               </svg>
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{user.name}</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 font-[family-name:var(--font-quicksand)]">{user.name}</h1>
               {user.is_leader && (
                 <span className="mt-1 inline-flex items-center rounded-xl bg-[#B5CED8]/20 px-3 py-1 text-xs font-medium text-gray-800">
                   Leader
@@ -118,7 +128,7 @@ function UserDetailPageContent() {
                   : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
               }`}
             >
-              Records ({records.length})
+              Records ({records.length + bonuses.length})
             </button>
             <button
               onClick={() => setActiveTab('spends')}
@@ -136,39 +146,98 @@ function UserDetailPageContent() {
         {/* Records Tab */}
         {activeTab === 'records' && (
           <div className="space-y-3">
-            {records.length === 0 ? (
+            {records.length === 0 && bonuses.length === 0 ? (
               <div className="rounded-2xl border-2 border-gray-200 bg-gray-50 p-8 text-center text-gray-600">
                 No records yet
               </div>
             ) : (
-              records.map((record) => (
-                <div
-                  key={record.id}
-                  className="rounded-2xl border-2 border-gray-200 bg-gradient-to-r from-gray-50 to-white p-4 transition-all hover:shadow-md"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-xl bg-[#D1DA8A]/20">
-                        <svg className="h-5 w-5 text-[#B8C76E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-900">
-                          {record.record_type === 'first' ? 'First Time' : 'Repeat'}
+              // Combine and sort records and bonuses by date
+              [...records.map(r => ({ type: 'verse' as const, data: r, date: r.recorded_at })),
+               ...bonuses.map(b => ({ type: 'bonus' as const, data: b, date: b.awarded_at }))]
+                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                .map((item) => (
+                  <div
+                    key={`${item.type}-${item.data.id}`}
+                    className="rounded-2xl border-2 border-gray-200 bg-gradient-to-r from-gray-50 to-white p-4 transition-all hover:shadow-md"
+                  >
+                    {item.type === 'verse' ? (
+                      // Verse record
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-xl bg-[#D1DA8A]/20">
+                            <svg className="h-5 w-5 text-[#B8C76E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </div>
+                          <div>
+                            <div className="font-medium text-gray-900">
+                              {(item.data as VerseRecord).memory_items?.reference || 'Unknown'}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              {(item.data as VerseRecord).record_type === 'first' ? 'First Time' : 'Repeat'} · {new Date((item.data as VerseRecord).recorded_at).toLocaleString()}
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-sm text-gray-600">
-                          {new Date(record.recorded_at).toLocaleString()}
+                        <div className="flex items-center rounded-xl bg-[#D1DA8A]/20 px-3 py-1.5">
+                          <span className="text-lg font-semibold text-[#B8C76E]">+{(item.data as VerseRecord).points_awarded}</span>
+                          <span className="ml-1 text-sm text-gray-600">pts</span>
                         </div>
                       </div>
-                    </div>
-                    <div className="flex items-center rounded-xl bg-[#D1DA8A]/20 px-3 py-1.5">
-                      <span className="text-lg font-semibold text-[#B8C76E]">+{record.points_awarded}</span>
-                      <span className="ml-1 text-sm text-gray-600">pts</span>
-                    </div>
+                    ) : (
+                      // Bonus record
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div className={`mr-3 flex h-10 w-10 items-center justify-center rounded-xl ${
+                            (item.data as BonusRecord).category === 'legacy' ? 'bg-[#B5CED8]/20' :
+                            (item.data as BonusRecord).category === 'correction' ? 'bg-[#DFA574]/20' :
+                            'bg-[#D1DA8A]/20'
+                          }`}>
+                            <svg className={`h-5 w-5 ${
+                              (item.data as BonusRecord).category === 'legacy' ? 'text-[#B5CED8]' :
+                              (item.data as BonusRecord).category === 'correction' ? 'text-[#DFA574]' :
+                              'text-[#B8C76E]'
+                            }`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                              {(item.data as BonusRecord).category === 'legacy' ? (
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              ) : (item.data as BonusRecord).category === 'correction' ? (
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              ) : (
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                              )}
+                            </svg>
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-gray-900">
+                                {(item.data as BonusRecord).reason}
+                              </span>
+                              <span className="inline-flex items-center rounded-lg bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700 capitalize">
+                                {(item.data as BonusRecord).category}
+                              </span>
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              {new Date((item.data as BonusRecord).awarded_at).toLocaleString()}
+                            </div>
+                          </div>
+                        </div>
+                        <div className={`flex items-center rounded-xl px-3 py-1.5 ${
+                          (item.data as BonusRecord).points_awarded > 0 
+                            ? 'bg-[#D1DA8A]/20' 
+                            : 'bg-[#C97435]/20'
+                        }`}>
+                          <span className={`text-lg font-semibold ${
+                            (item.data as BonusRecord).points_awarded > 0 
+                              ? 'text-[#B8C76E]' 
+                              : 'text-[#C97435]'
+                          }`}>
+                            {(item.data as BonusRecord).points_awarded > 0 ? '+' : ''}{(item.data as BonusRecord).points_awarded}
+                          </span>
+                          <span className="ml-1 text-sm text-gray-600">pts</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))
+                ))
             )}
           </div>
         )}

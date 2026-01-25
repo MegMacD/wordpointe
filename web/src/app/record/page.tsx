@@ -337,13 +337,13 @@ function RecordPageContent() {
       <div className="rounded-3xl border border-gray-200 bg-white p-6 sm:p-10 shadow-lg">
         {/* Header with Lime accent */}
         <div className="mb-6 sm:mb-8">
-          <div className="mb-3 flex items-center">
-            <div className="mr-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#D1DA8A] to-[#B8C76E] shadow-md">
+          <div className="mb-3 flex items-start gap-3">
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#D1DA8A] to-[#B8C76E] shadow-md">
               <svg className="h-7 w-7 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Record Memory</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 font-[family-name:var(--font-quicksand)] leading-tight">Record Memory</h1>
           </div>
           <p className="text-gray-600">Track Bible memory achievements and award points</p>
         </div>

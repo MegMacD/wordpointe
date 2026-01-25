@@ -112,7 +112,7 @@ function HomeContent() {
 
           <Link
             href="/admin/memory-items"
-            className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+            className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
           >
             <h2 className="mb-2 text-xl font-semibold text-gray-900">
               Memory Items
@@ -124,7 +124,7 @@ function HomeContent() {
 
           <Link
             href="/admin/reports"
-            className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+            className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
           >
             <h2 className="mb-2 text-xl font-semibold text-gray-900">
               Reports
@@ -136,7 +136,7 @@ function HomeContent() {
 
           <Link
             href="/admin/settings"
-            className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+            className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
           >
             <h2 className="mb-2 text-xl font-semibold text-gray-900">
               Settings

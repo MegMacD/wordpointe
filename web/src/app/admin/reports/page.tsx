@@ -41,13 +41,13 @@ function ReportsPageContent() {
       <div className="rounded-3xl border border-gray-200 bg-white p-6 sm:p-10 shadow-lg">
         {/* Print Header */}
         <div className="print-header">
-          <div className="mb-6 flex items-center">
-            <div className="mr-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#DFA574] to-[#C88A5E] shadow-md">
+          <div className="mb-6 flex items-start gap-3">
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#DFA574] to-[#C88A5E] shadow-md">
               <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 font-[family-name:var(--font-quicksand)] leading-tight">
               Word Pointe Points Report
             </h1>
           </div>
@@ -153,7 +153,7 @@ function ReportsPageContent() {
                     <td className="print-hide whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                       <button
                         onClick={() => handleExportUserHistory(user.id, user.name)}
-                        className="rounded bg-blue-100 px-2 py-1 text-xs text-blue-700 hover:bg-blue-200"
+                        className="rounded-lg bg-[#B5CED8]/20 px-2 py-1 text-xs font-medium text-[#9AB5C1] hover:bg-[#B5CED8]/30 transition-colors"
                         title={`Export history for ${user.name}`}
                       >
                         Export History

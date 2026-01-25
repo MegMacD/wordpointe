@@ -161,11 +161,20 @@ function AdminRecordsPageContent() {
   });
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="rounded-lg bg-white p-8 shadow">
-        <div className="mb-6">
-                  <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900">User Records</h1>
+    <div className="mx-auto max-w-7xl px-4 py-4 sm:py-8 sm:px-6 lg:px-8">
+      <div className="rounded-3xl border border-gray-200 bg-white p-6 sm:p-10 shadow-lg">
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#B5CED8] to-[#9AB5C1] shadow-md">
+              <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 font-[family-name:var(--font-quicksand)] leading-tight">User Records</h1>
+              <p className="mt-1 text-sm text-gray-600">Manage verse and spend records</p>
+            </div>
+          </div>
           <button
             onClick={() => {
               setLoading(true);
@@ -173,65 +182,76 @@ function AdminRecordsPageContent() {
                 .finally(() => setLoading(false));
             }}
             disabled={loading}
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:bg-gray-400"
+            className="rounded-xl bg-gradient-to-r from-[#B5CED8] to-[#9AB5C1] px-5 py-2.5 text-sm font-semibold text-gray-800 shadow-md transition-all hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
           >
             {loading ? 'Refreshing...' : 'Refresh Data'}
           </button>
         </div>
-          <p className="mt-2 text-gray-600">Manage verse and spend records</p>
-        </div>
 
         {/* Summary Statistics */}
         <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-4">
-          <div className="rounded-lg bg-blue-50 p-4">
-            <div className="text-2xl font-bold text-blue-600">{verseRecords.length}</div>
-            <div className="text-sm text-blue-800">Total Verse Records</div>
+          <div className="rounded-2xl bg-gradient-to-br from-[#B5CED8]/20 to-[#B5CED8]/10 border border-[#B5CED8]/30 p-4">
+            <div className="text-2xl font-bold text-gray-800">{verseRecords.length}</div>
+            <div className="text-sm text-gray-700">Total Verse Records</div>
           </div>
-          <div className="rounded-lg bg-green-50 p-4">
-            <div className="text-2xl font-bold text-green-600">{spendRecords.length}</div>
-            <div className="text-sm text-green-800">Total Spend Records</div>
+          <div className="rounded-2xl bg-gradient-to-br from-[#D1DA8A]/20 to-[#D1DA8A]/10 border border-[#D1DA8A]/30 p-4">
+            <div className="text-2xl font-bold text-gray-800">{spendRecords.length}</div>
+            <div className="text-sm text-gray-700">Total Spend Records</div>
           </div>
-          <div className="rounded-lg bg-purple-50 p-4">
-            <div className="text-2xl font-bold text-purple-600">
+          <div className="rounded-2xl bg-gradient-to-br from-[#DFA574]/20 to-[#DFA574]/10 border border-[#DFA574]/30 p-4">
+            <div className="text-2xl font-bold text-gray-800">
               {verseRecords.reduce((sum, record) => sum + (record.points_awarded || 0), 0)}
             </div>
-            <div className="text-sm text-purple-800">Points Awarded</div>
+            <div className="text-sm text-gray-700">Points Awarded</div>
           </div>
-          <div className="rounded-lg bg-orange-50 p-4">
-            <div className="text-2xl font-bold text-orange-600">
+          <div className="rounded-2xl bg-gradient-to-br from-[#B5CED8]/20 to-[#9AB5C1]/10 border border-[#B5CED8]/30 p-4">
+            <div className="text-2xl font-bold text-gray-800">
               {spendRecords.reduce((sum, record) => sum + (record.points_spent || 0), 0)}
             </div>
-            <div className="text-sm text-orange-800">Points Spent</div>
+            <div className="text-sm text-gray-700">Points Spent</div>
           </div>
         </div>
 
         {/* Message */}
         {message && (
-          <div className={`mb-6 rounded-md p-4 ${
-            message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+          <div className={`mb-6 rounded-2xl p-4 border ${
+            message.type === 'success' 
+              ? 'bg-[#D1DA8A]/20 text-gray-800 border-[#D1DA8A]/30' 
+              : 'bg-[#C97435]/10 text-gray-800 border-[#C97435]/30'
           }`}>
-            {message.text}
+            <div className="flex items-center">
+              {message.type === 'success' ? (
+                <svg className="mr-2 h-5 w-5 text-[#B8C76E]" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <svg className="mr-2 h-5 w-5 text-[#C97435]" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              )}
+              <span className="font-medium">{message.text}</span>
+            </div>
           </div>
         )}
 
         {/* Tabs */}
-        <div className="mb-6 flex space-x-1 rounded-lg bg-gray-100 p-1">
+        <div className="mb-6 flex space-x-2 rounded-2xl bg-gray-50 p-1.5">
           <button
             onClick={() => setActiveTab('verse')}
-            className={`flex-1 rounded-md px-3 py-2 text-sm font-medium ${
+            className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
               activeTab === 'verse'
-                ? 'bg-white text-gray-900 shadow'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'bg-gradient-to-r from-[#D1DA8A] to-[#BCC775] text-gray-800 shadow-md'
+                : 'text-gray-600 hover:text-gray-800 hover:bg-white/50'
             }`}
           >
             Verse Records ({verseRecords.length})
           </button>
           <button
             onClick={() => setActiveTab('spend')}
-            className={`flex-1 rounded-md px-3 py-2 text-sm font-medium ${
+            className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
               activeTab === 'spend'
-                ? 'bg-white text-gray-900 shadow'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'bg-gradient-to-r from-[#DFA574] to-[#C98F5F] text-white shadow-md'
+                : 'text-gray-600 hover:text-gray-800 hover:bg-white/50'
             }`}
           >
             Spend Records ({spendRecords.length})
@@ -239,20 +259,20 @@ function AdminRecordsPageContent() {
         </div>
 
         {/* Filters */}
-        <div className="mb-6 flex flex-wrap gap-4">
+        <div className="mb-6 flex flex-wrap gap-3">
           <input
             type="text"
             placeholder="Search records..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+            className="flex-1 min-w-[200px] rounded-xl border-2 border-gray-200 px-4 py-2.5 shadow-sm transition-colors focus:border-[#B5CED8] focus:outline-none focus:ring-2 focus:ring-[#B5CED8]/20"
           />
           <input
             type="text"
             placeholder="Filter by user..."
             value={userFilter}
             onChange={(e) => setUserFilter(e.target.value)}
-            className="rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+            className="flex-1 min-w-[200px] rounded-xl border-2 border-gray-200 px-4 py-2.5 shadow-sm transition-colors focus:border-[#B5CED8] focus:outline-none focus:ring-2 focus:ring-[#B5CED8]/20"
           />
         </div>
 
@@ -262,9 +282,9 @@ function AdminRecordsPageContent() {
           <>
             {/* Verse Records Table */}
             {activeTab === 'verse' && (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto rounded-2xl border-2 border-gray-200">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gradient-to-r from-[#D1DA8A]/10 to-[#D1DA8A]/5">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                         User
@@ -312,8 +332,10 @@ function AdminRecordsPageContent() {
                           </div>
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
-                          <span className={`rounded-full px-2 py-1 text-xs ${
-                            record.record_type === 'first' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
+                          <span className={`rounded-lg px-2.5 py-1 text-xs font-medium ${
+                            record.record_type === 'first' 
+                              ? 'bg-[#D1DA8A]/30 text-gray-800' 
+                              : 'bg-[#B5CED8]/30 text-gray-800'
                           }`}>
                             {record.record_type}
                           </span>
@@ -322,7 +344,7 @@ function AdminRecordsPageContent() {
                           <div className="flex space-x-2">
                             <button
                               onClick={() => handleDeleteRecord(record)}
-                              className="text-red-600 hover:text-red-900"
+                              className="font-medium text-[#C97435] hover:text-[#A85C28] transition-colors"
                             >
                               Delete
                             </button>
@@ -340,9 +362,9 @@ function AdminRecordsPageContent() {
 
             {/* Spend Records Table */}
             {activeTab === 'spend' && (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto rounded-2xl border-2 border-gray-200">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gradient-to-r from-[#DFA574]/10 to-[#DFA574]/5">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                         User
@@ -386,11 +408,11 @@ function AdminRecordsPageContent() {
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-sm">
                           {record.undone ? (
-                            <span className="rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-800">
+                            <span className="rounded-lg bg-gray-200 px-2.5 py-1 text-xs font-medium text-gray-700">
                               Undone
                             </span>
                           ) : (
-                            <span className="rounded-full bg-green-100 px-2 py-1 text-xs text-green-800">
+                            <span className="rounded-lg bg-[#D1DA8A]/30 px-2.5 py-1 text-xs font-medium text-gray-800">
                               Active
                             </span>
                           )}
@@ -399,13 +421,13 @@ function AdminRecordsPageContent() {
                           <div className="flex space-x-2">
                             <button
                               onClick={() => handleEditRecord(record)}
-                              className="text-blue-600 hover:text-blue-900"
+                              className="font-medium text-[#B5CED8] hover:text-[#9AB5C1] transition-colors"
                             >
                               Edit
                             </button>
                             <button
                               onClick={() => handleDeleteRecord(record)}
-                              className="text-red-600 hover:text-red-900"
+                              className="font-medium text-[#C97435] hover:text-[#A85C28] transition-colors"
                             >
                               Delete
                             </button>
