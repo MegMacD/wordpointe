@@ -141,7 +141,7 @@ export default function SearchableDropdown({
     <div className="flex items-center justify-between">
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <div className={`font-medium truncate ${isSelected ? 'text-blue-900' : 'text-gray-900'}`}>
+          <div className={`font-medium truncate ${isSelected ? 'text-gray-900' : 'text-gray-900'}`}>
             {option.label}
           </div>
           {option.badge && (
@@ -151,7 +151,7 @@ export default function SearchableDropdown({
           )}
         </div>
         {option.secondary && (
-          <div className={`text-sm truncate ${isSelected ? 'text-blue-700' : 'text-gray-600'}`}>
+          <div className="text-sm truncate text-gray-600">
             {option.secondary}
           </div>
         )}
@@ -180,14 +180,14 @@ export default function SearchableDropdown({
         onKeyDown={handleKeyDown}
         disabled={disabled}
         className={`
-          relative w-full rounded-md border border-gray-300 bg-white pl-3 pr-10 py-2 text-left shadow-sm 
-          focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500
+          relative w-full rounded-xl border-2 border-gray-200 bg-white pl-4 pr-10 py-2.5 text-left shadow-sm 
+          focus:border-[#B5CED8] focus:outline-none focus:ring-2 focus:ring-[#B5CED8]/20
           ${disabled ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-50'}
         `}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
       >
-        <span className="block truncate">
+        <span className="block truncate text-gray-900">
           {selectedOption ? selectedOption.label : placeholder}
         </span>
         <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
@@ -202,7 +202,7 @@ export default function SearchableDropdown({
       </button>
 
       {isOpen && (
-        <div className="absolute z-10 mt-1 w-full rounded-md bg-white shadow-lg border border-gray-200">
+        <div className="absolute z-10 mt-1 w-full rounded-xl bg-white shadow-lg border-2 border-gray-200">
           <div className="p-2 border-b border-gray-200">
             <div className="relative">
               <input
@@ -212,7 +212,7 @@ export default function SearchableDropdown({
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder={searchPlaceholder}
-                className="w-full rounded-md border border-gray-300 pl-9 pr-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-lg border-2 border-gray-200 pl-9 pr-3 py-2 text-sm text-gray-900 focus:border-[#B5CED8] focus:outline-none focus:ring-2 focus:ring-[#B5CED8]/20"
               />
               <svg className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -251,8 +251,8 @@ export default function SearchableDropdown({
                             ? 'text-gray-400 cursor-not-allowed' 
                             : 'cursor-pointer hover:bg-gray-50'
                           }
-                          ${highlightedIndex === optionIndex ? 'bg-blue-50' : ''}
-                          ${value === option.id ? 'bg-blue-100' : ''}
+                          ${highlightedIndex === optionIndex ? 'bg-[#B5CED8]/10' : ''}
+                          ${value === option.id ? 'bg-[#B5CED8]/20' : ''}
                         `}
                         disabled={option.disabled}
                         onMouseEnter={() => setHighlightedIndex(optionIndex)}
