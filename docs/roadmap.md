@@ -38,6 +38,20 @@
 - Two-factor authentication for admins
 - Account lockout after failed attempts
 
+## v0.7 – Engagement & Gamification
+- **Leaderboard Page**
+  - Show top users by verse count and total points
+  - All-time and current month views
+  - Available to all leaders (not admin-only)
+  - Consistent styling with existing pages
+- **User Avatar System**
+  - Emoji-based avatars (kid-friendly subset only)
+  - Exclude objectionable emojis (💩, 🍆, etc.)
+  - Random selection on quick user creation
+  - User-selectable during creation/editing
+  - Display on user list and leaderboard
+  - Leader editing capability
+
 ## Stretch / Future
 - Quick-add multi-item entry flow
 - Prize store UX (compose multiple items, subtotal preview)

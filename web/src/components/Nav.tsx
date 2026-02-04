@@ -42,6 +42,7 @@ export default function Nav() {
     { href: '/record', label: 'Record' },
     { href: '/spend', label: 'Spend' },
     { href: '/users', label: 'Users' },
+    { href: '/leaderboard', label: 'Leaderboard' },
   ];
 
   const adminLinks = [
