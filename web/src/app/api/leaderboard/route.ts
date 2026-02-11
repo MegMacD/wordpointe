@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
       // Get verse records for the month
       const { data: verseData } = await supabase
         .from('verse_records')
-        .select('user_id, points_awarded, users!inner(name, is_leader)')
+        .select('user_id, points_awarded, users!inner(name, is_leader, emojiIcon)')
         .gte('recorded_at', firstDayOfMonth.toISOString());
 
       // Get bonus records for the month
@@ -25,15 +25,16 @@ export async function GET(req: NextRequest) {
         .gte('awarded_at', firstDayOfMonth.toISOString());
 
       // Aggregate by user
-      const userStats = new Map<string, { username: string; verse_count: number; total_points: number; is_leader: boolean }>();
+      const userStats = new Map<string, { username: string; verse_count: number; total_points: number; is_leader: boolean; emojiIcon?: string }>();
 
       // Process verse records
       verseData?.forEach((record: any) => {
         const userId = record.user_id;
         const username = record.users.name;
         const is_leader = record.users.is_leader;
+        const emojiIcon = record.users.emojiIcon;
         if (!userStats.has(userId)) {
-          userStats.set(userId, { username, verse_count: 0, total_points: 0, is_leader });
+          userStats.set(userId, { username, verse_count: 0, total_points: 0, is_leader, emojiIcon });
         }
         const stats = userStats.get(userId)!;
         stats.verse_count += 1;
@@ -61,6 +62,7 @@ export async function GET(req: NextRequest) {
           total_points: stats.total_points,
           current_points: 0, // Not relevant for monthly view
           is_leader: stats.is_leader,
+          emojiIcon: stats.emojiIcon,
         }))
         .filter(entry => entry.total_points > 0 || entry.verse_count > 0)
         .sort((a, b) => b.total_points - a.total_points || b.verse_count - a.verse_count);
@@ -70,7 +72,7 @@ export async function GET(req: NextRequest) {
       // All-time stats from user_points_summary
       const { data } = await supabase
         .from('user_points_summary')
-        .select('id, name, is_leader, total_earned, current_points')
+        .select('id, name, is_leader, total_earned, current_points, emojiIcon')
         .gt('total_earned', 0)
         .order('total_earned', { ascending: false });
 
@@ -91,6 +93,7 @@ export async function GET(req: NextRequest) {
         total_points: user.total_earned,
         current_points: user.current_points,
         is_leader: user.is_leader,
+        emojiIcon: user.emojiIcon,
       }));
 
       return NextResponse.json({ items: leaderboard });

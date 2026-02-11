@@ -13,6 +13,7 @@ interface LeaderboardEntry {
   total_points: number;
   current_points: number;
   is_leader: boolean;
+  emojiIcon?: string;
 }
 
 function LeaderboardPageContent() {
@@ -130,8 +131,17 @@ function LeaderboardPageContent() {
                         {isTop3 ? medals[index] : `#${index + 1}`}
                       </div>
 
-                      {/* Username */}
-                      <div className="flex-1">
+                      {/* User Icon & Username */}
+                      <div className="flex flex-1 items-center gap-3">
+                        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#B5CED8] to-[#9AB5C1] shadow-sm">
+                          {entry.emojiIcon ? (
+                            <span className="text-xl">{entry.emojiIcon}</span>
+                          ) : (
+                            <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                          )}
+                        </div>
                         <Link
                           href={`/users/${entry.user_id}`}
                           className="text-lg font-semibold text-gray-800 hover:text-[#9AB5C1]"

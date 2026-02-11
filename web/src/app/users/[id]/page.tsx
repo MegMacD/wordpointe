@@ -87,16 +87,20 @@ function UserDetailPageContent() {
 
       <div className="rounded-3xl border border-gray-200 bg-white p-6 sm:p-10 shadow-lg">
         <div className="mb-6 sm:mb-8">
-          <div className="flex items-center mb-3">
-            <div className="mr-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#B5CED8] to-[#9AB5C1] shadow-md">
-              <svg className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
+          <div className="flex items-start gap-3 mb-4">
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#B5CED8] to-[#9AB5C1] shadow-md">
+              {user.emojiIcon ? (
+                <span className="text-2xl">{user.emojiIcon}</span>
+              ) : (
+                <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              )}
             </div>
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 font-[family-name:var(--font-quicksand)]">{user.name}</h1>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 font-[family-name:var(--font-quicksand)] leading-tight">{user.name}</h1>
               {user.is_leader && (
-                <span className="mt-1 inline-flex items-center rounded-xl bg-[#B5CED8]/20 px-3 py-1 text-xs font-medium text-gray-800">
+                <span className="mt-2 inline-flex items-center rounded-xl bg-[#B5CED8]/20 px-3 py-1 text-xs font-medium text-gray-800">
                   Leader
                 </span>
               )}

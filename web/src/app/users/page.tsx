@@ -5,12 +5,14 @@ import Link from 'next/link';
 import { UserSummary } from '@/lib/types';
 import AuthGuard from '@/components/AuthGuard';
 import UserForm from '@/components/UserForm';
+import { EMOJI_ICON_OPTIONS } from '@/components/emojiIconOptions';
 
 interface EditingUser {
   id: string;
   name: string;
   is_leader: boolean;
   notes?: string;
+  emojiIcon?: string;
 }
 
 function UsersPageContent() {
@@ -22,6 +24,7 @@ function UsersPageContent() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -46,6 +49,7 @@ function UsersPageContent() {
 
   const handleEditUser = async (user: UserSummary) => {
     setActionLoading(user.id);
+    setShowEmojiPicker(false); // Reset emoji picker state
     try {
       // Fetch full user data including notes
       const res = await fetch(`/api/users/${user.id}`);
@@ -56,6 +60,7 @@ function UsersPageContent() {
           name: fullUser.name,
           is_leader: fullUser.is_leader,
           notes: fullUser.notes || '',
+          emojiIcon: fullUser.emojiIcon || '',
         });
       }
     } catch (error) {
@@ -80,11 +85,13 @@ function UsersPageContent() {
           name: editingUser.name.trim(),
           is_leader: editingUser.is_leader,
           notes: editingUser.notes?.trim() || null,
+          emojiIcon: editingUser.emojiIcon || null,
         }),
       });
 
       if (res.ok) {
         setEditingUser(null);
+        setShowEmojiPicker(false);
         fetchUsers();
         setMessage({ type: 'success', text: 'User updated successfully!' });
         setTimeout(() => setMessage(null), 3000);
@@ -168,8 +175,8 @@ function UsersPageContent() {
 
         {/* Edit User Modal */}
         {editingUser && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-            <div className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-2xl">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
+            <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-3xl bg-white p-6 sm:p-8 shadow-2xl">
               <div className="mb-6 flex items-center">
                 <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-[#B5CED8] to-[#9AB5C1]">
                   <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -181,6 +188,61 @@ function UsersPageContent() {
               
               <div className="space-y-5">
                 <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">User Icon</label>
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[#B5CED8] to-[#9AB5C1] shadow-sm">
+                      {editingUser.emojiIcon ? (
+                        <span className="text-2xl">{editingUser.emojiIcon}</span>
+                      ) : (
+                        <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                      className="flex-1 rounded-xl border-2 border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 hover:border-[#B5CED8]"
+                    >
+                      {showEmojiPicker ? '✕ Close' : editingUser.emojiIcon ? 'Change Icon' : 'Pick an Icon'}
+                    </button>
+                    {editingUser.emojiIcon && (
+                      <button
+                        type="button"
+                        onClick={() => setEditingUser({ ...editingUser, emojiIcon: '' })}
+                        className="rounded-xl border-2 border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-500 transition-all hover:bg-red-50 hover:border-red-200 hover:text-red-600"
+                        title="Remove icon"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                  
+                  {showEmojiPicker && (
+                    <div className="mt-3 rounded-xl border-2 border-[#B5CED8]/30 bg-[#F0F7FA] p-3">
+                      <div className="max-h-48 overflow-y-auto">
+                        <div className="grid grid-cols-6 sm:grid-cols-8 gap-2">
+                          {EMOJI_ICON_OPTIONS.map((emoji) => (
+                            <button
+                              type="button"
+                              key={emoji}
+                              className={`text-2xl p-2 rounded-lg border-2 transition-colors ${editingUser.emojiIcon === emoji ? 'border-[#B5CED8] bg-white shadow-sm' : 'border-transparent hover:border-gray-300 hover:bg-white/50'}`}
+                              onClick={() => {
+                                setEditingUser({ ...editingUser, emojiIcon: emoji });
+                                setShowEmojiPicker(false);
+                              }}
+                              aria-label={`Select ${emoji} as user icon`}
+                            >
+                              {emoji}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-600 mt-2">Tap an emoji to select it</p>
+                    </div>
+                  )}
+                </div>
+                <div>
                   <label htmlFor="edit-name" className="mb-2 block text-sm font-semibold text-gray-700">
                     Name *
                   </label>
@@ -189,7 +251,10 @@ function UsersPageContent() {
                     id="edit-name"
                     value={editingUser.name}
                     onChange={(e) => setEditingUser({ ...editingUser, name: e.target.value })}
-                    className="block w-full rounded-xl border-2 border-gray-200 px-4 py-3 shadow-sm transition-colors focus:border-[#B5CED8] focus:outline-none focus:ring-2 focus:ring-[#B5CED8]/20"
+                    className="bl{
+                    setEditingUser(null);
+                    setShowEmojiPicker(false);
+                  }l border-2 border-gray-200 px-4 py-3 shadow-sm transition-colors focus:border-[#B5CED8] focus:outline-none focus:ring-2 focus:ring-[#B5CED8]/20"
                     required
                   />
                 </div>
@@ -248,7 +313,7 @@ function UsersPageContent() {
 
         {/* Delete Confirmation Modal */}
         {deleteConfirm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
             <div className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-2xl">
               <div className="flex items-center">
                 <div className="mx-auto flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-[#C97435]/20">
@@ -343,9 +408,13 @@ function UsersPageContent() {
                     {/* User Info */}
                     <div className="flex items-center space-x-3 min-w-0">
                       <div className="flex-shrink-0 flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#B5CED8] to-[#9AB5C1] shadow-sm">
-                        <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
+                        {user.emojiIcon ? (
+                          <span className="text-xl">{user.emojiIcon}</span>
+                        ) : (
+                          <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                        )}
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">

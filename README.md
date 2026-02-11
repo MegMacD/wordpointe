@@ -136,9 +136,24 @@ See `QUICK_START.md` for a 15-minute setup guide, or `docs/setup-guide.md` for d
 
 ## 📚 Documentation
 
+### Getting Started
 - `QUICK_START.md` - Get running fast
-- `USER_ACCEPTANCE_TESTING.md` - Testing guide for users
 - `docs/setup-guide.md` - Complete setup instructions
+- `SETUP_CHECKLIST.md` - Setup verification checklist
+
+### Deployment & Production
+- `docs/DEPLOYMENT_GUIDE.md` - Deploy to Vercel for UAT
+- `docs/PRE_DEPLOYMENT_CHECKLIST.md` - Pre-deployment tasks
+- **`docs/PRODUCTION_ROLLOUT.md`** - **Complete production rollout plan**
+- **`docs/ROLLOUT_QUICKSTART.md`** - **Quick rollout steps**
+- `supabase/production_setup.sql` - Database cleanup and setup script
+
+### User & Testing
+- `USER_ACCEPTANCE_TESTING.md` - Testing guide for users
+- `docs/USER_CREATION_GUIDE.md` - How to create and manage users
+- `web/README-TESTING.md` - Developer testing guide
+
+### Technical Reference
 - `docs/auth-setup.md` - Authentication setup
 - `docs/auth-migration-guide.md` - How to switch auth providers later
 - `docs/product-spec.md` - Product requirements
@@ -146,5 +161,3 @@ See `QUICK_START.md` for a 15-minute setup guide, or `docs/setup-guide.md` for d
 - `docs/api-contract.md` - API endpoints
 - `docs/implementation-plan.md` - Development roadmap
 - `docs/roadmap.md` - Feature roadmap
-- `SETUP_CHECKLIST.md` - Setup verification checklist
-- `web/README-TESTING.md` - Developer testing guide

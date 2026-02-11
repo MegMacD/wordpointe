@@ -128,7 +128,8 @@ function SpendPageContent() {
   const userOptions = users.map(user => ({
     id: user.id,
     label: user.name,
-    secondary: user.is_leader ? 'Leader' : ''
+    secondary: user.is_leader ? 'Leader' : '',
+    icon: user.emojiIcon
   }));
 
   const remainingPoints =

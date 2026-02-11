@@ -87,7 +87,7 @@ export async function DELETE(
     // Get the record first to check if it exists and get user info
     const { data: record, error: fetchError } = await supabase
       .from('verse_records')
-      .select('user_id, points_earned')
+      .select('user_id, points_awarded')
       .eq('id', id)
       .single();
 
@@ -120,7 +120,7 @@ export async function DELETE(
       .single();
 
     if (!userError && user) {
-      const newPoints = Math.max(0, user.points - record.points_earned);
+      const newPoints = Math.max(0, user.points - record.points_awarded);
       const { error: pointsError } = await supabase
         .from('users')
         .update({ points: newPoints })

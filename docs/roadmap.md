@@ -46,7 +46,7 @@
   - Consistent styling with existing pages
 - **User Avatar System**
   - Emoji-based avatars (kid-friendly subset only)
-  - Exclude objectionable emojis (💩, 🍆, etc.)
+  - Exclude objectionable emojis (💩, etc.)
   - Random selection on quick user creation
   - User-selectable during creation/editing
   - Display on user list and leaderboard
