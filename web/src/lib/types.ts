@@ -6,6 +6,7 @@ export interface User {
   total_points: number;
   created_at: string;
   updated_at: string;
+  emojiIcon?: string; // User's emoji icon
 }
 
 export interface UserSummary {
@@ -13,6 +14,7 @@ export interface UserSummary {
   name: string;
   is_leader: boolean;
   current_points: number;
+  emojiIcon?: string; // User's emoji icon
 }
 
 export interface MemoryItem {
@@ -76,5 +78,6 @@ export interface Settings {
 
 export interface UserWithPoints extends User {
   current_points: number;
+  emojiIcon?: string; // User's emoji icon
 }
 

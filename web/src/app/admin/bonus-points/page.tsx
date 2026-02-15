@@ -94,7 +94,8 @@ function BonusPointsPageContent() {
   const userOptions = users.map(user => ({
     id: user.id,
     label: user.name,
-    secondary: `${user.current_points} points${user.is_leader ? ' • Leader' : ''}`
+    secondary: `${user.current_points} points${user.is_leader ? ' • Leader' : ''}`,
+    icon: user.emojiIcon
   }));
 
   return (

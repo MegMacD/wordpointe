@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { EMOJI_ICON_OPTIONS, getRandomEmoji } from './emojiIconOptions';
 
 interface UserFormProps {
   onUserAdded: () => void;
@@ -24,6 +25,8 @@ export default function UserForm({ onUserAdded, onCancel, compact = false, exist
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
+  const [emojiIcon, setEmojiIcon] = useState<string>('');
+  const [useRandomIcon, setUseRandomIcon] = useState(false);
 
   // Check for duplicates when name changes
   const checkForDuplicates = (inputName: string) => {
@@ -68,10 +71,17 @@ export default function UserForm({ onUserAdded, onCancel, compact = false, exist
     setError(null);
 
     try {
-      const userData: CreateUserRequest = {
+
+      const userData: CreateUserRequest & { emojiIcon?: string } = {
         name: name.trim(),
         is_leader: isLeader,
       };
+      // Use random emoji if checkbox is checked, otherwise use selected emoji
+      if (useRandomIcon) {
+        userData.emojiIcon = getRandomEmoji();
+      } else if (emojiIcon) {
+        userData.emojiIcon = emojiIcon;
+      }
 
       if (notes.trim()) {
         userData.notes = notes.trim();
@@ -97,8 +107,10 @@ export default function UserForm({ onUserAdded, onCancel, compact = false, exist
         // Reset form
         setName('');
         setIsLeader(false);
+        setUseRandomIcon(false);
         setNotes('');
         setLegacyPoints('');
+        setEmojiIcon('');
         onUserAdded();
       } else {
         setError(data.error || 'Failed to create user');
@@ -135,6 +147,48 @@ export default function UserForm({ onUserAdded, onCancel, compact = false, exist
       )}
 
       <div className={compact ? 'space-y-3' : 'space-y-5'}>
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">User Icon (Emoji)</label>
+          
+          <div className="mb-3 flex items-center rounded-xl bg-gray-50 p-3">
+            <input
+              type="checkbox"
+              id="use-random-icon"
+              checked={useRandomIcon}
+              onChange={(e) => {
+                setUseRandomIcon(e.target.checked);
+                if (e.target.checked) {
+                  setEmojiIcon(''); // Clear manual selection when using random
+                }
+              }}
+              className="h-4 w-4 rounded border-gray-300 text-[#B5CED8] focus:ring-[#B5CED8]"
+              disabled={loading}
+            />
+            <label htmlFor="use-random-icon" className="ml-3 block text-sm font-medium text-gray-700">
+              Randomly assign an emoji
+            </label>
+          </div>
+
+          {!useRandomIcon && (
+            <>
+              <div className="grid grid-cols-8 gap-2 mb-2">
+                {EMOJI_ICON_OPTIONS.map((emoji) => (
+                  <button
+                    type="button"
+                    key={emoji}
+                    className={`text-2xl p-1 rounded-xl border-2 transition-colors ${emojiIcon === emoji ? 'border-[#B5CED8] bg-[#F0F7FA]' : 'border-transparent hover:border-gray-300'}`}
+                    onClick={() => setEmojiIcon(emoji)}
+                    aria-label={`Select ${emoji} as user icon`}
+                    disabled={loading}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-gray-500">Pick an emoji to use as your user icon.</p>
+            </>
+          )}
+        </div>
         <div>
           <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
             Name *

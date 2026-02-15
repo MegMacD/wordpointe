@@ -10,6 +10,7 @@ interface Option {
   group?: string;
   badge?: string;
   count?: number;
+  icon?: string; // Emoji icon for users
 }
 
 interface SearchableDropdownProps {

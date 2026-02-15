@@ -201,7 +201,7 @@ function RecordPageContent() {
     // Note: We could auto-select the new user here if needed
   };
 
-  const handleAddUser = async (userData: { name: string; is_leader: boolean; notes: string }) => {
+  const handleAddUser = async (userData: { name: string; is_leader: boolean; notes: string; emojiIcon?: string }) => {
     setLoading(true);
     try {
       const res = await fetch('/api/users', {
@@ -213,6 +213,7 @@ function RecordPageContent() {
           name: userData.name,
           is_leader: userData.is_leader,
           notes: userData.notes || undefined,
+          emojiIcon: userData.emojiIcon || undefined,
         }),
       });
 
@@ -310,7 +311,8 @@ function RecordPageContent() {
   const userOptions = users.map(user => ({
     id: user.id,
     label: user.name,
-    secondary: user.is_leader ? 'Leader' : ''
+    secondary: user.is_leader ? 'Leader' : '',
+    icon: user.emojiIcon
   }));
 
   // Convert memory items to dropdown options with grouping

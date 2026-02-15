@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { getRandomEmoji } from './emojiIconOptions';
 
 interface UserFormFieldsProps {
-  onSubmit: (userData: { name: string; is_leader: boolean; notes: string; legacy_points?: number }) => Promise<boolean>;
+  onSubmit: (userData: { name: string; is_leader: boolean; notes: string; legacy_points?: number; emojiIcon?: string }) => Promise<boolean>;
   onCancel?: () => void;
   compact?: boolean;
   existingUsers?: Array<{ id: string; name: string }>;
@@ -64,10 +65,11 @@ export default function UserFormFields({ onSubmit, onCancel, compact = false, ex
 
     setError(null);
 
-    const userData: { name: string; is_leader: boolean; notes: string; legacy_points?: number } = {
+    const userData: { name: string; is_leader: boolean; notes: string; legacy_points?: number; emojiIcon?: string } = {
       name: name.trim(),
       is_leader: isLeader,
-      notes: notes.trim()
+      notes: notes.trim(),
+      emojiIcon: getRandomEmoji() // Randomly assign an emoji
     };
 
     // Include legacy points if provided
