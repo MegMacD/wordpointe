@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
 
     const supabase = getSupabaseAdmin();
     const body = await request.json();
-    const { name, is_leader = false, notes = null, legacy_points = null, emojiIcon = null } = body;
+    const { name, is_leader = false, notes = null, legacy_points = null, emojiIcon = null, displayAccommodationNote = false } = body;
 
     if (!name || typeof name !== 'string') {
       return NextResponse.json(
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
 
     const { data, error } = await supabase
       .from('users')
-      .insert({ name, is_leader, notes, emojiIcon })
+      .insert({ name, is_leader, notes, emojiIcon, display_accommodation_note: displayAccommodationNote })
       .select()
       .single();
 

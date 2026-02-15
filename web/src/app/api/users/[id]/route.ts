@@ -57,9 +57,15 @@ export async function PATCH(
     const supabase = getSupabaseAdmin();
     const body = await request.json();
 
+    // Map displayAccommodationNote to display_accommodation_note
+    const updateBody = {
+      ...body,
+      display_accommodation_note: body.displayAccommodationNote,
+    };
+    delete updateBody.displayAccommodationNote;
     const { data, error } = await supabase
       .from('users')
-      .update(body)
+      .update(updateBody)
       .eq('id', id)
       .select()
       .single();

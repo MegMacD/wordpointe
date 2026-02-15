@@ -15,6 +15,8 @@ export interface UserSummary {
   is_leader: boolean;
   current_points: number;
   emojiIcon?: string; // User's emoji icon
+  notes?: string | null;
+  displayAccommodationNote?: boolean;
 }
 
 export interface MemoryItem {

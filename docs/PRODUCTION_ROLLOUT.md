@@ -37,6 +37,8 @@ WHERE table_name = 'users'
 SELECT column_name 
 FROM information_schema.columns 
 WHERE table_name = 'user_points_summary';
+
+-- Should include: id, name, is_leader, notes, display_accommodation_note, emojiIcon, total_earned, current_points
 ```
 
 **Expected Results:**

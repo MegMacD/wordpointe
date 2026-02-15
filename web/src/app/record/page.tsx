@@ -8,6 +8,10 @@ import SearchableDropdown from '@/components/SearchableDropdown';
 import { validateBibleReference, validateBibleReferenceExists, getBookSuggestions } from '@/lib/bible-api';
 
 function RecordPageContent() {
+    // ...existing code...
+    // ...existing code...
+    // ...existing code...
+    // selectedUser assignment moved below
   const [users, setUsers] = useState<UserSummary[]>([]);
   const [memoryItems, setMemoryItems] = useState<MemoryItem[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string>('');
@@ -162,7 +166,14 @@ function RecordPageContent() {
     const res = await fetch('/api/users');
     const data = await res.json();
     if (res.ok) {
-      setUsers(data.items || []);
+      // Map display_accommodation_note to displayAccommodationNote for all users
+      const mapped = (data.items || []).map((u: any) => ({
+        ...u,
+        displayAccommodationNote: typeof u.displayAccommodationNote !== 'undefined'
+          ? u.displayAccommodationNote
+          : u.display_accommodation_note,
+      }));
+      setUsers(mapped);
     }
   };
 
@@ -337,6 +348,8 @@ function RecordPageContent() {
     return a.group.localeCompare(b.group);
   });
 
+  // Find selected user object after users state initialization
+  const selectedUser = users.find(u => u.id === selectedUserId);
   return (
     <div className="mx-auto max-w-4xl px-4 py-4 sm:px-6 sm:py-8 lg:px-8">
       <div className="rounded-3xl border border-gray-200 bg-white p-6 sm:p-10 shadow-lg">
@@ -372,6 +385,21 @@ function RecordPageContent() {
                 </svg>
               )}
               <span className="font-medium">{message.text}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Accommodation Note Display (moved below header) */}
+        {selectedUser && selectedUser.notes && selectedUser.notes.trim() &&
+          selectedUser.displayAccommodationNote && (
+          <div className="mb-6 rounded-2xl border-2 border-[#B5CED8]/40 bg-[#F0F7FA] p-4 flex items-start">
+            <svg className="mr-3 h-5 w-5 text-[#B5CED8] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01" />
+            </svg>
+            <div className="flex-1">
+              <div className="text-sm font-semibold text-[#B5CED8] mb-1">Accommodation Note</div>
+              <div className="text-sm text-gray-800 whitespace-pre-line">{selectedUser.notes}</div>
+              <div className="mt-1 text-xs text-gray-500">This note is shown to leaders when recording memory verses for this user.</div>
             </div>
           </div>
         )}
