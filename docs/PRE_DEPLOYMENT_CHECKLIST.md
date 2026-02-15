@@ -6,10 +6,10 @@ Complete these steps before deploying to UAT:
 
 ### 1. Database Migration
 - [ ] Open Supabase SQL Editor
-- [ ] Copy contents of `supabase/migrations/004_bonus_records.sql`
+- [ ] Copy contents of all migrations up to and including `supabase/migrations/009_update_user_points_summary_accommodation_note.sql`
 - [ ] Paste and run in SQL Editor
 - [ ] Verify: Run `SELECT * FROM bonus_records LIMIT 1;` (should not error)
-- [ ] Verify: Run `SELECT * FROM user_points_summary LIMIT 1;` (should include bonus points)
+- [ ] Verify: Run `SELECT * FROM user_points_summary LIMIT 1;` (should include bonus points, notes, and display_accommodation_note fields)
 
 ### 2. Environment Variables Ready
 - [ ] Supabase Project URL copied
@@ -64,6 +64,7 @@ Once deployed, follow the testing guide:
 - Most common: Migration not run (Step 1 above)
 - Second most common: Environment variables missing/incorrect
 
+
 ## 📊 Current Features for UAT
 
 Users can test:
@@ -76,6 +77,7 @@ Users can test:
 - ✅ **NEW**: Add users with legacy points
 - ✅ **NEW**: Adjust points (admin-only, arbitrary grants)
 - ✅ **NEW**: Auto-fetch verse text in admin forms
+- ✅ **NEW**: Accommodation notes and display flag for users (shown to leaders when recording)
 
 ## 🎯 Focus Areas for UAT Feedback
 

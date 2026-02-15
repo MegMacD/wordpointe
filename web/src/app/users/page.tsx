@@ -13,6 +13,7 @@ interface EditingUser {
   is_leader: boolean;
   notes?: string;
   emojiIcon?: string;
+  displayAccommodationNote?: boolean;
 }
 
 function UsersPageContent() {
@@ -61,6 +62,7 @@ function UsersPageContent() {
           is_leader: fullUser.is_leader,
           notes: fullUser.notes || '',
           emojiIcon: fullUser.emojiIcon || '',
+          displayAccommodationNote: !!fullUser.display_accommodation_note,
         });
       }
     } catch (error) {
@@ -86,6 +88,7 @@ function UsersPageContent() {
           is_leader: editingUser.is_leader,
           notes: editingUser.notes?.trim() || null,
           emojiIcon: editingUser.emojiIcon || null,
+          displayAccommodationNote: !!editingUser.displayAccommodationNote,
         }),
       });
 
@@ -226,7 +229,8 @@ function UsersPageContent() {
                             <button
                               type="button"
                               key={emoji}
-                              className={`text-2xl p-2 rounded-lg border-2 transition-colors ${editingUser.emojiIcon === emoji ? 'border-[#B5CED8] bg-white shadow-sm' : 'border-transparent hover:border-gray-300 hover:bg-white/50'}`}
+                              className={`text-2xl flex items-center justify-center rounded-full border-2 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-[#B5CED8]/30 ${editingUser.emojiIcon === emoji ? 'border-[#B5CED8] bg-white shadow-sm' : 'border-transparent hover:border-[#B5CED8] hover:bg-white/70 focus:border-[#B5CED8]'} min-w-[44px] min-h-[44px]`}
+                              style={{ boxSizing: 'border-box' }}
                               onClick={() => {
                                 setEditingUser({ ...editingUser, emojiIcon: emoji });
                                 setShowEmojiPicker(false);
@@ -259,6 +263,7 @@ function UsersPageContent() {
                   />
                 </div>
                 
+                
                 <div className="rounded-xl bg-gray-50 p-4">
                   <div className="flex items-center">
                     <input
@@ -272,8 +277,23 @@ function UsersPageContent() {
                       This person is a leader
                     </label>
                   </div>
+                  <div className="flex items-center mt-2">
+                    <input
+                      type="checkbox"
+                      id="edit-display-accommodation-note"
+                      checked={!!editingUser.displayAccommodationNote}
+                      onChange={(e) => setEditingUser({ ...editingUser, displayAccommodationNote: e.target.checked })}
+                      className="h-5 w-5 rounded border-gray-300 text-[#B5CED8] focus:ring-[#B5CED8]"
+                    />
+                    <label htmlFor="edit-display-accommodation-note" className="ml-3 block text-sm font-medium text-gray-700">
+                      Display notes when recording
+                      <span
+                        className="ml-2 text-xs text-gray-500 cursor-help"
+                        title="Check this box if the notes contain information a leader should see when recording a memory verse, such as accommodations or support needs."
+                      >&#9432;</span>
+                    </label>
+                  </div>
                 </div>
-                
                 <div>
                   <label htmlFor="edit-notes" className="mb-2 block text-sm font-semibold text-gray-700">
                     Notes (Optional)

@@ -186,6 +186,34 @@ function HelpPageContent() {
           </div>
         </section>
 
+        {/* Accommodation Notes Guidance */}
+        <section className="mb-8">
+          <h2 className="mb-4 flex items-center text-xl font-bold text-gray-900">
+            <span className="mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-[#B5CED8] text-sm font-bold text-gray-800">!</span>
+            Accommodation Notes & Leader Guidance
+          </h2>
+          <div className="ml-10 space-y-4">
+            <div className="rounded-xl border border-[#B5CED8]/30 bg-[#B5CED8]/10 p-4">
+              <h3 className="mb-2 font-semibold text-gray-900">What are accommodation notes?</h3>
+              <p className="text-gray-700 text-sm">
+                Accommodation notes are special instructions or information about a child that leaders should be aware of when recording memory work. These may include learning accommodations, support needs, or other important details to help leaders provide the best support.
+              </p>
+            </div>
+            <div className="rounded-xl border border-[#DFA574]/30 bg-[#DFA574]/10 p-4">
+              <h3 className="mb-2 font-semibold text-gray-900">How do leaders see accommodation notes?</h3>
+              <p className="text-gray-700 text-sm">
+                If the "Display notes when recording" checkbox is checked for a user, their accommodation notes will appear on the Record page for leaders. This ensures leaders are reminded of any special instructions or support needs at the moment of recording memory work.
+              </p>
+            </div>
+            <div className="rounded-xl border border-[#C97435]/30 bg-[#C97435]/10 p-4">
+              <h3 className="mb-2 font-semibold text-gray-900">Leader Guidance</h3>
+              <p className="text-gray-700 text-sm">
+                Leaders should always review accommodation notes before recording memory work for a child. These notes are intended to help leaders provide encouragement, adapt expectations, and ensure every child is supported according to their needs.
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* Navigation */}
         <div className="mt-8 flex justify-center gap-4 border-t border-gray-200 pt-6">
           <Link

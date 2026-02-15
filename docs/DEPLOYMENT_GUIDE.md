@@ -19,7 +19,7 @@ Before deploying, you **must** run the latest migration in your Supabase databas
 1. Go to your Supabase project dashboard
 2. Click **SQL Editor** in the sidebar
 3. Click **"+ New query"**
-4. Copy the entire contents of `supabase/migrations/004_bonus_records.sql`
+4. Copy the entire contents of all migrations up to and including `supabase/migrations/009_update_user_points_summary_accommodation_note.sql`
 5. Paste and click **Run**
 
 ### Verify Migration Success
@@ -30,7 +30,7 @@ Run this query to verify:
 SELECT * FROM bonus_records LIMIT 1;
 
 -- Should include bonus_points column
-SELECT * FROM user_points_summary LIMIT 1;
+SELECT * FROM user_points_summary LIMIT 1; -- should include bonus points, notes, and display_accommodation_note fields
 ```
 
 ---

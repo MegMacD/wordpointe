@@ -15,6 +15,7 @@ interface CreateUserRequest {
   is_leader?: boolean;
   notes?: string;
   legacy_points?: number;
+  displayAccommodationNote?: boolean;
 }
 
 export default function UserForm({ onUserAdded, onCancel, compact = false, existingUsers = [] }: UserFormProps) {
@@ -27,6 +28,7 @@ export default function UserForm({ onUserAdded, onCancel, compact = false, exist
   const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
   const [emojiIcon, setEmojiIcon] = useState<string>('');
   const [useRandomIcon, setUseRandomIcon] = useState(false);
+  const [displayAccommodationNote, setDisplayAccommodationNote] = useState(false);
 
   // Check for duplicates when name changes
   const checkForDuplicates = (inputName: string) => {
@@ -75,6 +77,7 @@ export default function UserForm({ onUserAdded, onCancel, compact = false, exist
       const userData: CreateUserRequest & { emojiIcon?: string } = {
         name: name.trim(),
         is_leader: isLeader,
+        displayAccommodationNote,
       };
       // Use random emoji if checkbox is checked, otherwise use selected emoji
       if (useRandomIcon) {
@@ -209,7 +212,7 @@ export default function UserForm({ onUserAdded, onCancel, compact = false, exist
           />
         </div>
 
-        <div className="rounded-xl bg-gray-50 p-4">
+        <div className="rounded-xl bg-gray-50 p-4 space-y-2">
           <div className="flex items-center">
             <input
               type="checkbox"
@@ -221,6 +224,25 @@ export default function UserForm({ onUserAdded, onCancel, compact = false, exist
             />
             <label htmlFor="is_leader" className="ml-3 block text-sm font-medium text-gray-700">
               This person is a leader
+            </label>
+          </div>
+          <div className="flex items-center mt-2">
+            <input
+              type="checkbox"
+              id="display-accommodation-note"
+              checked={displayAccommodationNote}
+              onChange={(e) => setDisplayAccommodationNote(e.target.checked)}
+              className="h-5 w-5 rounded border-gray-300 text-[#B5CED8] focus:ring-[#B5CED8]"
+              disabled={loading}
+            />
+            <label htmlFor="display-accommodation-note" className="ml-3 block text-sm font-medium text-gray-700">
+              Display notes when recording
+              <span
+                className="ml-2 text-xs text-gray-500 cursor-help"
+                title="Check this box if the notes contain information a leader should see when recording a memory verse, such as accommodations or support needs."
+              >
+                &#9432;
+              </span>
             </label>
           </div>
         </div>

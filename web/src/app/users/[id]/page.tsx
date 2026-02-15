@@ -119,6 +119,15 @@ function UserDetailPageContent() {
               </div>
             </div>
           </div>
+          {/* User Notes Section */}
+          {user.notes && user.notes.trim() && (
+            <div className="mt-6">
+              <div className="text-sm font-semibold text-gray-700 mb-2">Notes</div>
+              <div className="rounded-xl bg-[#F0F7FA] border border-[#B5CED8]/20 p-4 text-sm text-gray-800 whitespace-pre-line">
+                {user.notes}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Tabs */}
