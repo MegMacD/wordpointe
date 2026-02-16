@@ -174,8 +174,8 @@ FROM settings;
 ```
 
 **Available Bible Versions:**
+- `NIV` - New International Version (default)
 - `ESV` - English Standard Version
-- `NIV` - New International Version  
 - `KJV` - King James Version
 - `NKJV` - New King James Version
 - `NLT` - New Living Translation

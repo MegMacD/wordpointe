@@ -86,6 +86,40 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Check for existing item (active or inactive)
+    const { data: existingItem } = await supabase
+      .from('memory_items')
+      .select('*')
+      .eq('reference', reference)
+      .single();
+
+    if (existingItem) {
+      if (existingItem.active) {
+        return NextResponse.json(
+          { error: 'A memory item with this reference already exists and is active.' },
+          { status: 409 }
+        );
+      } else {
+        // Reactivate the item
+        const { data: reactivated, error: reactivateError } = await supabase
+          .from('memory_items')
+          .update({
+            active: true,
+            text,
+            points_first: finalPointsFirst,
+            points_repeat: finalPointsRepeat,
+          })
+          .eq('id', existingItem.id)
+          .select()
+          .single();
+        if (reactivateError) {
+          throw reactivateError;
+        }
+        return NextResponse.json(reactivated as MemoryItem, { status: 200 });
+      }
+    }
+
+    // No existing item, create new
     const { data, error } = await supabase
       .from('memory_items')
       .insert({

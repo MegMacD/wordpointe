@@ -19,7 +19,7 @@
 - Error monitoring and logs surfacing
 
 ## v0.4 – Content & Catalog
-- ✅ Bible API integration with auto-creation (ESV)
+- ✅ Bible API integration with auto-creation (NIV)
 - ✅ On-demand verse fetching and storage
 
 ## v0.5 – Accounts & RLS

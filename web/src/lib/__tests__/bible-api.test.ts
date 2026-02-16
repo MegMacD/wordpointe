@@ -77,7 +77,7 @@ describe('Bible API - Validation', () => {
         json: async () => ({
           text: 'For God so loved the world...',
           reference: 'John 3:16',
-          version: 'ESV'
+          version: 'NIV'
         })
       });
 
