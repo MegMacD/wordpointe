@@ -178,28 +178,37 @@ describe('POST /api/records - Auto-create verses', () => {
     expect(fetchBibleVerse).not.toHaveBeenCalled(); // Should not fetch if item exists
   });
 
-  it('should calculate points for verse ranges', async () => {
+  it('should use default points from settings', async () => {
     // Mock: memory item not found
     mockSupabase.single.mockResolvedValueOnce({
       error: { message: 'Not found' },
       data: null
     });
 
-    // Mock: Bible API returns verse range
+    // Mock: settings with default points
+    mockSupabase.single.mockResolvedValueOnce({
+      data: {
+        default_points_first: 15,
+        default_points_repeat: 8
+      },
+      error: null
+    });
+
+    // Mock: Bible API returns verse
     (fetchBibleVerse as jest.Mock).mockResolvedValueOnce({
-      text: 'The Lord is my shepherd...',
-      reference: 'Psalm 23:1-6',
+      text: 'For God so loved the world...',
+      reference: 'John 3:16',
       version: 'NIV'
     });
 
-    // Mock: successful insert with higher points for range
+    // Mock: successful insert with settings-based points
     mockSupabase.single.mockResolvedValueOnce({
       data: {
         id: 'new-verse-id',
         type: 'verse',
-        reference: 'Psalm 23:1-6',
-        points_first: 20, // Higher points for 6 verses
-        points_repeat: 10
+        reference: 'John 3:16',
+        points_first: 15,
+        points_repeat: 8
       },
       error: null
     });
@@ -208,7 +217,7 @@ describe('POST /api/records - Auto-create verses', () => {
     mockSupabase.single.mockResolvedValueOnce({
       data: {
         id: 'record-id',
-        points_awarded: 20
+        points_awarded: 15
       },
       error: null
     });
@@ -219,14 +228,14 @@ describe('POST /api/records - Auto-create verses', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         user_id: 'user-123',
-        memory_item_id: 'Psalm 23:1-6',
+        memory_item_id: 'John 3:16',
         record_type: 'first'
       })
     });
     const data = await response.json();
 
     expect(response.status).toBe(201);
-    expect(data.points_awarded).toBe(20);
+    expect(data.points_awarded).toBe(15);
   });
 
   it('should store verses in NIV version', async () => {

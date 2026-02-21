@@ -79,22 +79,12 @@ describe('GET /api/bible/verse', () => {
     expect(data.error).toContain('not found');
   });
 
-  it('should handle verse ranges', async () => {
-    const mockVerse = {
-      reference: 'Psalm 23:1-6',
-      text: 'The Lord is my shepherd...',
-      version: 'NIV',
-      copyright: 'NIV Copyright'
-    };
-
-    (fetchBibleVerse as jest.Mock).mockResolvedValueOnce(mockVerse);
-
-
+  it('should reject verse ranges', async () => {
     const response = await fetch('/api/bible/verse?reference=Psalm+23:1-6');
     const data = await response.json();
 
-    expect(response.status).toBe(200);
-    expect(data.reference).toBe('Psalm 23:1-6');
+    expect(response.status).toBe(400);
+    expect(data.error).toContain('Invalid verse reference');
   });
 
   it('should handle errors gracefully', async () => {

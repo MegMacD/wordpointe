@@ -1,4 +1,3 @@
--- Consolidated migration: user_points_summary view with all current fields
 DROP VIEW IF EXISTS user_points_summary;
 
 CREATE VIEW user_points_summary AS

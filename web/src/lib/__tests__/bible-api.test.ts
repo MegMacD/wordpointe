@@ -18,10 +18,10 @@ describe('Bible API - Validation', () => {
       expect(valid.normalized).toBe('John 3:16');
     });
 
-    it('should validate verse ranges', () => {
-      const valid = validateBibleReference('Psalm 23:1-6');
-      expect(valid.isValid).toBe(true);
-      expect(valid.normalized).toBe('Psalm 23:1-6');
+    it('should reject verse ranges', () => {
+      const invalid = validateBibleReference('Psalm 23:1-6');
+      expect(invalid.isValid).toBe(false);
+      expect(invalid.error).toContain('Format should be like "John 3:16"');
     });
 
     it('should validate numbered books', () => {

@@ -310,9 +310,23 @@ function RecordPageContent() {
         fetchMemoryItems(); // Refresh items list in case new verse was added
       } else {
         setMessage({ type: 'error', text: data.error || 'Failed to record' });
+        
+        // Clear custom reference on error to allow user to try again
+        if (useCustomReference) {
+          setCustomReference('');
+          setUseCustomReference(false);
+          setReferenceError('');
+        }
       }
     } catch (error) {
       setMessage({ type: 'error', text: 'Network error' });
+      
+      // Clear custom reference on error to allow user to try again
+      if (useCustomReference) {
+        setCustomReference('');
+        setUseCustomReference(false);
+        setReferenceError('');
+      }
     } finally {
       setLoading(false);
     }
@@ -374,17 +388,37 @@ function RecordPageContent() {
                 : 'bg-[#C97435]/10 text-gray-800 border border-[#C97435]/30'
             }`}
           >
-            <div className="flex items-center">
-              {message.type === 'success' ? (
-                <svg className="mr-2 h-5 w-5 text-[#B8C76E]" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            <div className="flex items-start justify-between">
+              <div className="flex items-start flex-1">
+                {message.type === 'success' ? (
+                  <svg className="mr-2 h-5 w-5 text-[#B8C76E] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                ) : (
+                  <svg className="mr-2 h-5 w-5 text-[#C97435] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                )}
+                <div className="flex-1">
+                  <p className="font-medium">{message.text}</p>
+                  {message.type === 'error' && (
+                    <p className="mt-1 text-xs text-gray-600">
+                      {message.text.toLowerCase().includes('already') || message.text.toLowerCase().includes('duplicate') 
+                        ? 'The quick add field has been cleared. Please try a different verse or select from the list below.'
+                        : 'Dismiss this message to try again.'}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <button
+                onClick={() => setMessage(null)}
+                className="ml-3 flex-shrink-0 rounded-lg p-1 hover:bg-black/5 transition-colors"
+                aria-label="Dismiss message"
+              >
+                <svg className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
-              ) : (
-                <svg className="mr-2 h-5 w-5 text-[#C97435]" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
-              )}
-              <span className="font-medium">{message.text}</span>
+              </button>
             </div>
           </div>
         )}
@@ -570,7 +604,7 @@ function RecordPageContent() {
                     // Delay hiding suggestions to allow clicking them
                     setTimeout(() => setBookSuggestions([]), 200);
                   }}
-                  placeholder="e.g., John 3:16 or Psalm 23:1-6"
+                  placeholder="e.g., John 3:16"
                   className={`w-full rounded-xl border-2 px-4 py-3 text-gray-900 placeholder-gray-500 transition-all focus:outline-none focus:ring-2 ${
                     referenceError 
                       ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' 

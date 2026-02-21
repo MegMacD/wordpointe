@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-server';
 import { requireAdmin } from '@/lib/auth';
 import { MemoryItem } from '@/lib/types';
+import { validateBibleReference } from '@/lib/bible-api';
 
 export async function GET(request: NextRequest) {
   try {
@@ -67,6 +68,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Normalize verse references to ensure consistency
+    let normalizedReference = reference.trim();
+    if (type === 'verse') {
+      const validation = validateBibleReference(reference.trim());
+      if (!validation.isValid) {
+        return NextResponse.json(
+          { error: validation.error || 'Invalid verse reference format' },
+          { status: 400 }
+        );
+      }
+      normalizedReference = validation.normalized!;
+    }
+
     // Get default points from settings if not provided
     let finalPointsFirst = points_first;
     let finalPointsRepeat = points_repeat;
@@ -90,7 +104,7 @@ export async function POST(request: NextRequest) {
     const { data: existingItem } = await supabase
       .from('memory_items')
       .select('*')
-      .eq('reference', reference)
+      .eq('reference', normalizedReference)
       .single();
 
     if (existingItem) {
@@ -124,7 +138,7 @@ export async function POST(request: NextRequest) {
       .from('memory_items')
       .insert({
         type,
-        reference,
+        reference: normalizedReference,
         text,
         points_first: finalPointsFirst,
         points_repeat: finalPointsRepeat,

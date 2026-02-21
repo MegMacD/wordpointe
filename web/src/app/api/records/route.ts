@@ -3,28 +3,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server';
 import { requireAuth } from '@/lib/auth';
 import { computePoints } from '@/lib/points';
 import { VerseRecord } from '@/lib/types';
-import { fetchBibleVerse } from '@/lib/bible-api';
-
-// Helper to calculate default points based on verse reference
-function calculateDefaultPoints(reference: string): { first: number; repeat: number } {
-  // Check if it's a range (e.g., "John 3:16-18" or "Psalm 23:1-6")
-  const isRange = reference.includes('-') && reference.match(/\d+-\d+/);
-  
-  let basePoints = 10; // Default base points
-  
-  if (isRange) {
-    const match = reference.match(/(\d+)-(\d+)/);
-    if (match) {
-      const verseCount = parseInt(match[2]) - parseInt(match[1]) + 1;
-      basePoints = Math.min(10 + (verseCount * 2), 30); // Cap at 30
-    }
-  }
-  
-  return {
-    first: basePoints,
-    repeat: Math.ceil(basePoints / 2)
-  };
-}
+import { fetchBibleVerse, validateBibleReference } from '@/lib/bible-api';
 
 export async function GET(request: NextRequest) {
   try {
@@ -155,7 +134,13 @@ export async function POST(request: NextRequest) {
 
     if (memoryItem.error || !memoryItem.data) {
       // Memory item doesn't exist - this might be a verse reference that needs to be created
-      const reference = memory_item_id;
+      let reference = memory_item_id;
+      
+      // Normalize the reference if it's a verse
+      const validation = validateBibleReference(reference);
+      if (validation.isValid) {
+        reference = validation.normalized!;
+      }
       // Check for inactive item with same reference
       const { data: inactiveItem } = await supabase
         .from('memory_items')
@@ -190,8 +175,16 @@ export async function POST(request: NextRequest) {
             { status: 404 }
           );
         }
-        // Calculate default points
-        const points = calculateDefaultPoints(reference);
+        // Get default points from settings
+        const { data: settings } = await supabase
+          .from('settings')
+          .select('default_points_first, default_points_repeat')
+          .single();
+        
+        const points = {
+          first: settings?.default_points_first ?? 10,
+          repeat: settings?.default_points_repeat ?? 5
+        };
         // Create the memory item
         const { data: newItem, error: createError } = await supabase
           .from('memory_items')

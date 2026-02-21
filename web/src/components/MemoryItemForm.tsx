@@ -1,19 +1,23 @@
 import { useState, useEffect } from 'react';
 import { MemoryItem } from '@/lib/types';
-import { validateBibleReference, fetchBibleVerse, getBookSuggestions } from '@/lib/bible-api';
+import { validateBibleReference, getBookSuggestions } from '@/lib/bible-api';
 
 interface MemoryItemFormProps {
   item?: MemoryItem | null;
   onSubmit: (data: Partial<MemoryItem>) => Promise<void>;
   onCancel: () => void;
   isLoading?: boolean;
+  apiError?: string | null;
+  onClearError?: () => void;
 }
 
 export default function MemoryItemForm({ 
   item = null, 
   onSubmit, 
   onCancel, 
-  isLoading = false 
+  isLoading = false,
+  apiError = null,
+  onClearError
 }: MemoryItemFormProps) {
   const [formData, setFormData] = useState({
     type: 'verse' as 'verse' | 'custom',
@@ -22,13 +26,14 @@ export default function MemoryItemForm({
     points_first: 10,
     points_repeat: 5,
     active: true,
-    bible_version: 'ESV',
+    bible_version: 'NIV',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [fetchingVerse, setFetchingVerse] = useState(false);
   const [manualTextOverride, setManualTextOverride] = useState(false);
   const [bookSuggestions, setBookSuggestions] = useState<string[]>([]);
+  const [validatingVerse, setValidatingVerse] = useState(false);
 
   useEffect(() => {
     if (item) {
@@ -48,11 +53,24 @@ export default function MemoryItemForm({
     }
   }, [item]);
 
+  // Clear form when API error indicates duplicate
+  useEffect(() => {
+    if (apiError && (apiError.toLowerCase().includes('duplicate') || apiError.toLowerCase().includes('already exists'))) {
+      // Clear reference and text fields
+      setFormData(prev => ({ ...prev, reference: '', text: '' }));
+      setManualTextOverride(false);
+      setErrors({});
+    }
+  }, [apiError]);
+
   // Auto-fetch verse when reference changes (for verse type only)
   useEffect(() => {
-    if (formData.type === 'verse' && formData.reference && !manualTextOverride && !item) {
+    if (formData.type === 'verse' && formData.reference && !manualTextOverride) {
       const delayDebounce = setTimeout(() => {
-        fetchVerseText();
+        const validation = validateBibleReference(formData.reference.trim());
+        if (validation.isValid) {
+          fetchVerseText();
+        }
       }, 800); // Debounce to avoid too many API calls
 
       return () => clearTimeout(delayDebounce);
@@ -71,24 +89,65 @@ export default function MemoryItemForm({
 
     setFetchingVerse(true);
     try {
-      const verseData = await fetchBibleVerse(reference, formData.bible_version);
+      // Use our API route as a proxy to avoid CORS issues
+      const params = new URLSearchParams({
+        reference,
+        version: formData.bible_version
+      });
+      const response = await fetch(`/api/bible/verse?${params}`);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          setErrors(prev => ({ ...prev, reference: 'This verse reference does not exist' }));
+        } else {
+          setErrors(prev => ({ ...prev, reference: 'Failed to fetch verse. Please check the reference.' }));
+        }
+        return;
+      }
+
+      const verseData = await response.json();
       if (verseData && verseData.text) {
         handleInputChange('text', verseData.text);
         // Clear any previous errors
         setErrors(prev => ({ ...prev, reference: '', text: '' }));
+      } else {
+        setErrors(prev => ({ ...prev, reference: 'This verse reference does not exist or could not be fetched' }));
       }
     } catch (error) {
       console.error('Failed to fetch verse:', error);
+      setErrors(prev => ({ ...prev, reference: 'Failed to fetch verse. Please check the reference.' }));
     } finally {
       setFetchingVerse(false);
     }
   };
 
-  const validateForm = () => {
+  const validateForm = async () => {
     const newErrors: Record<string, string> = {};
 
     if (!formData.reference.trim()) {
       newErrors.reference = 'Reference is required';
+    } else if (formData.type === 'verse') {
+      // Validate verse exists for verse type
+      setValidatingVerse(true);
+      try {
+        const params = new URLSearchParams({
+          reference: formData.reference.trim(),
+          version: formData.bible_version
+        });
+        const response = await fetch(`/api/bible/verse?${params}`);
+        setValidatingVerse(false);
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            newErrors.reference = 'This verse reference does not exist';
+          } else {
+            newErrors.reference = 'Failed to validate verse reference';
+          }
+        }
+      } catch (error) {
+        setValidatingVerse(false);
+        newErrors.reference = 'Failed to validate verse reference';
+      }
     }
 
     if (formData.points_first < 0) {
@@ -110,7 +169,8 @@ export default function MemoryItemForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm()) {
+    const isValid = await validateForm();
+    if (!isValid) {
       return;
     }
 
@@ -124,26 +184,12 @@ export default function MemoryItemForm({
   };
 
   const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    
-    // If manually editing text field for a verse, enable override
-    if (field === 'text' && formData.type === 'verse' && typeof value === 'string') {
-      setManualTextOverride(true);
-    }
-    
-    // Reset manual override if switching to custom type
-    if (field === 'type' && value === 'custom') {
-      setManualTextOverride(false);
-    }
-    
-    // Reset manual override and clear text if switching to verse type
-    if (field === 'type' && value === 'verse') {
-      setManualTextOverride(false);
-      setFormData(prev => ({ ...prev, text: '' }));
-    }
-    
-    // Get autocomplete suggestions for book names (verse type only)
+    // Handle reference changes specially to consolidate state updates
     if (field === 'reference' && formData.type === 'verse') {
+      // Reset manual override when reference changes to allow auto-fetch
+      setManualTextOverride(false);
+      setFormData(prev => ({ ...prev, reference: value, text: '' }));
+      
       const bookMatch = value.match(/^([1-3]?\s?[A-Za-z\s]*)/);
       if (bookMatch && bookMatch[1].trim()) {
         const suggestions = getBookSuggestions(bookMatch[1].trim());
@@ -151,16 +197,37 @@ export default function MemoryItemForm({
       } else {
         setBookSuggestions([]);
       }
+    } else if (field === 'type' && value === 'verse') {
+      // Reset manual override and clear text if switching to verse type
+      setManualTextOverride(false);
+      setFormData(prev => ({ ...prev, type: value, text: '' }));
+    } else if (field === 'type' && value === 'custom') {
+      // Reset manual override if switching to custom type
+      setManualTextOverride(false);
+      setFormData(prev => ({ ...prev, [field]: value }));
+    } else if (field === 'text' && formData.type === 'verse' && typeof value === 'string' && !fetchingVerse) {
+      // If manually editing text field for a verse, enable override
+      // But NOT when it's being set by the auto-fetch
+      setManualTextOverride(true);
+      setFormData(prev => ({ ...prev, [field]: value }));
+    } else {
+      // Default case: just update the field
+      setFormData(prev => ({ ...prev, [field]: value }));
     }
     
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
+    
+    // Clear API error when user makes changes
+    if (onClearError) {
+      onClearError();
+    }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-[#B5CED8]/20 via-[#D1DA8A]/10 to-[#DFA574]/20">
       <div className="w-full max-w-2xl rounded-lg bg-white p-6 shadow-xl">
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-gray-900">
@@ -170,6 +237,37 @@ export default function MemoryItemForm({
             {item ? 'Update the memory item details below.' : 'Create a new memory item for students to memorize.'}
           </p>
         </div>
+
+        {/* API Error Display */}
+        {apiError && (
+          <div className="mb-6 rounded-2xl bg-[#C97435]/10 border border-[#C97435]/30 p-4">
+            <div className="flex items-start justify-between">
+              <div className="flex items-start flex-1">
+                <svg className="mr-2 h-5 w-5 text-[#C97435] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-800">{apiError}</p>
+                  {(apiError.toLowerCase().includes('duplicate') || apiError.toLowerCase().includes('already exists')) ? (
+                    <p className="mt-1 text-xs text-gray-600">Please enter a different verse reference.</p>
+                  ) : null}
+                </div>
+              </div>
+              {onClearError && (
+                <button
+                  type="button"
+                  onClick={onClearError}
+                  className="ml-3 flex-shrink-0 rounded-lg p-1 hover:bg-black/5 transition-colors"
+                  aria-label="Dismiss error"
+                >
+                  <svg className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Type Selection */}
@@ -231,7 +329,7 @@ export default function MemoryItemForm({
                   // Delay hiding suggestions to allow clicking them
                   setTimeout(() => setBookSuggestions([]), 200);
                 }}
-                placeholder={formData.type === 'verse' ? 'e.g., John 3:16 or Psalm 23:1-6' : 'e.g., Books of the New Testament'}
+                placeholder={formData.type === 'verse' ? 'e.g., John 3:16' : 'e.g., Books of the New Testament'}
                 className={`mt-1 block w-full rounded-md border ${
                   errors.reference ? 'border-red-300' : 'border-gray-300'
                 } px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500`}
@@ -290,7 +388,7 @@ export default function MemoryItemForm({
                   ? `Text ${manualTextOverride ? '(Manual Override)' : '(Auto-fetched from API)'}` 
                   : 'Text / Description'}
               </label>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 {formData.type === 'verse' && !manualTextOverride && (
                   <select
                     value={formData.bible_version}
@@ -307,21 +405,44 @@ export default function MemoryItemForm({
                   </select>
                 )}
                 {formData.type === 'verse' && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (manualTextOverride) {
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!formData.reference.trim()) {
+                          setErrors(prev => ({ ...prev, reference: 'Enter a reference first' }));
+                          return;
+                        }
+                        const validation = validateBibleReference(formData.reference.trim());
+                        if (!validation.isValid) {
+                          setErrors(prev => ({ ...prev, reference: validation.error || 'Invalid reference' }));
+                          return;
+                        }
                         setManualTextOverride(false);
-                        handleInputChange('text', '');
+                        setFormData(prev => ({ ...prev, text: '' }));
                         fetchVerseText();
-                      } else {
-                        setManualTextOverride(true);
-                      }
-                    }}
-                    className="text-xs text-blue-600 hover:text-blue-800 font-medium"
-                  >
-                    {manualTextOverride ? '↻ Use API' : '✎ Edit Manually'}
-                  </button>
+                      }}
+                      disabled={isLoading || fetchingVerse}
+                      className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {fetchingVerse ? '...' : '↻ Fetch'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setManualTextOverride(!manualTextOverride);
+                        if (!manualTextOverride) {
+                          // Switching to manual mode - keep current text
+                        } else {
+                          // Switching back to API mode - clear text to trigger fetch
+                          setFormData(prev => ({ ...prev, text: '' }));
+                        }
+                      }}
+                      className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                    >
+                      {manualTextOverride ? '🤖 Auto' : '✎ Manual'}
+                    </button>
+                  </>
                 )}
               </div>
             </div>
@@ -423,9 +544,9 @@ export default function MemoryItemForm({
             <button
               type="submit"
               className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              disabled={isLoading}
+              disabled={isLoading || validatingVerse}
             >
-              {isLoading ? 'Saving...' : (item ? 'Update Item' : 'Create Item')}
+              {validatingVerse ? 'Validating...' : (isLoading ? 'Saving...' : (item ? 'Update Item' : 'Create Item'))}
             </button>
           </div>
         </form>
