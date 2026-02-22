@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { fetchBibleVerse } from '@/lib/bible-api';
+import { fetchBibleVerse, validateBibleReference } from '@/lib/bible-api';
 import { getSupabaseAdmin } from '@/lib/supabase-server';
 
 export async function GET(request: NextRequest) {
@@ -10,6 +10,12 @@ export async function GET(request: NextRequest) {
     
     if (!reference) {
       return NextResponse.json({ error: 'Reference is required' }, { status: 400 });
+    }
+
+    // Validate reference format
+    const validation = validateBibleReference(reference);
+    if (!validation.isValid) {
+      return NextResponse.json({ error: validation.error || 'Invalid verse reference format' }, { status: 400 });
     }
     
     // Get preferred version from settings if not specified

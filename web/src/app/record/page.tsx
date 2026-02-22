@@ -36,7 +36,7 @@ function RecordPageContent() {
   const [useCustomReference, setUseCustomReference] = useState(false);
   const [referenceError, setReferenceError] = useState<string>('');
   const [bookSuggestions, setBookSuggestions] = useState<string[]>([]);
-  const [selectedVersion, setSelectedVersion] = useState<string>('ESV');
+  const [selectedVersion, setSelectedVersion] = useState<string>('NIV'); // NIV is now the stored/default version
   const [alternateVerseText, setAlternateVerseText] = useState<string>('');
   const [fetchingAlternateVerse, setFetchingAlternateVerse] = useState(false);
 
@@ -102,7 +102,7 @@ function RecordPageContent() {
       fetchVerseIfNeeded(selectedItemId);
     }
     // Reset version when item changes
-    setSelectedVersion('ESV');
+    setSelectedVersion('NIV');
     setAlternateVerseText('');
   }, [selectedUserId, selectedItemId, useCustomReference, customReference]);
 
@@ -140,7 +140,7 @@ function RecordPageContent() {
 
   // Fetch alternate version of verse
   const fetchAlternateVersion = async (reference: string, version: string) => {
-    if (!reference || version === 'ESV') {
+    if (!reference || version === 'NIV') {
       setAlternateVerseText('');
       return;
     }
@@ -310,9 +310,23 @@ function RecordPageContent() {
         fetchMemoryItems(); // Refresh items list in case new verse was added
       } else {
         setMessage({ type: 'error', text: data.error || 'Failed to record' });
+        
+        // Clear custom reference on error to allow user to try again
+        if (useCustomReference) {
+          setCustomReference('');
+          setUseCustomReference(false);
+          setReferenceError('');
+        }
       }
     } catch (error) {
       setMessage({ type: 'error', text: 'Network error' });
+      
+      // Clear custom reference on error to allow user to try again
+      if (useCustomReference) {
+        setCustomReference('');
+        setUseCustomReference(false);
+        setReferenceError('');
+      }
     } finally {
       setLoading(false);
     }
@@ -374,17 +388,37 @@ function RecordPageContent() {
                 : 'bg-[#C97435]/10 text-gray-800 border border-[#C97435]/30'
             }`}
           >
-            <div className="flex items-center">
-              {message.type === 'success' ? (
-                <svg className="mr-2 h-5 w-5 text-[#B8C76E]" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            <div className="flex items-start justify-between">
+              <div className="flex items-start flex-1">
+                {message.type === 'success' ? (
+                  <svg className="mr-2 h-5 w-5 text-[#B8C76E] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                ) : (
+                  <svg className="mr-2 h-5 w-5 text-[#C97435] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                )}
+                <div className="flex-1">
+                  <p className="font-medium">{message.text}</p>
+                  {message.type === 'error' && (
+                    <p className="mt-1 text-xs text-gray-600">
+                      {message.text.toLowerCase().includes('already') || message.text.toLowerCase().includes('duplicate') 
+                        ? 'The quick add field has been cleared. Please try a different verse or select from the list below.'
+                        : 'Dismiss this message to try again.'}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <button
+                onClick={() => setMessage(null)}
+                className="ml-3 flex-shrink-0 rounded-lg p-1 hover:bg-black/5 transition-colors"
+                aria-label="Dismiss message"
+              >
+                <svg className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
-              ) : (
-                <svg className="mr-2 h-5 w-5 text-[#C97435]" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
-              )}
-              <span className="font-medium">{message.text}</span>
+              </button>
             </div>
           </div>
         )}
@@ -397,9 +431,19 @@ function RecordPageContent() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01" />
             </svg>
             <div className="flex-1">
-              <div className="text-sm font-semibold text-[#B5CED8] mb-1">Accommodation Note</div>
+              <div className="text-sm font-semibold text-[#B5CED8] mb-1 flex items-center gap-1">
+                Accommodation Note
+                <span className="relative group">
+                  <svg className="h-4 w-4 text-[#B5CED8] ml-1 cursor-pointer" fill="none" viewBox="0 0 20 20" stroke="currentColor" strokeWidth={2} tabIndex={0} aria-label="Info">
+                    <circle cx="10" cy="10" r="9" stroke="currentColor" strokeWidth="2" fill="white" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10 7v2m0 4h.01" />
+                  </svg>
+                  <span className="absolute left-1/2 z-10 -translate-x-1/2 mt-2 w-64 rounded bg-gray-800 px-3 py-2 text-xs text-white opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity pointer-events-none">
+                    This note is shown to leaders when recording memory verses for this user.
+                  </span>
+                </span>
+              </div>
               <div className="text-sm text-gray-800 whitespace-pre-line">{selectedUser.notes}</div>
-              <div className="mt-1 text-xs text-gray-500">This note is shown to leaders when recording memory verses for this user.</div>
             </div>
           </div>
         )}
@@ -560,7 +604,7 @@ function RecordPageContent() {
                     // Delay hiding suggestions to allow clicking them
                     setTimeout(() => setBookSuggestions([]), 200);
                   }}
-                  placeholder="e.g., John 3:16 or Psalm 23:1-6"
+                  placeholder="e.g., John 3:16"
                   className={`w-full rounded-xl border-2 px-4 py-3 text-gray-900 placeholder-gray-500 transition-all focus:outline-none focus:ring-2 ${
                     referenceError 
                       ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' 
@@ -605,7 +649,7 @@ function RecordPageContent() {
                 
                 {!referenceError && customReference && (
                   <p className="mt-2 text-xs text-gray-600">
-                    🪄 Verse will be verified and automatically fetched from the Bible API (ESV)
+                    🪄 Verse will be verified and automatically fetched from the Bible API (NIV)
                   </p>
                 )}
               </div>
@@ -622,8 +666,8 @@ function RecordPageContent() {
                       onChange={(e) => setSelectedVersion(e.target.value)}
                       className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-[#D1DA8A] focus:outline-none focus:ring-2 focus:ring-[#D1DA8A]/20"
                     >
-                      <option value="ESV">ESV (Stored)</option>
-                      <option value="NIV">NIV</option>
+                      <option value="NIV">NIV (Stored)</option>
+                      <option value="ESV">ESV</option>
                       <option value="KJV">KJV</option>
                       <option value="NKJV">NKJV</option>
                       <option value="NLT">NLT</option>
@@ -648,7 +692,7 @@ function RecordPageContent() {
                       </span>
                     ) : (
                       <span className="ml-1">
-                        {selectedVersion === 'ESV' 
+                        {selectedVersion === 'NIV' 
                           ? (selectedItem.text || fetchedVerseText)
                           : (alternateVerseText || selectedItem.text || fetchedVerseText)}
                       </span>
@@ -656,14 +700,14 @@ function RecordPageContent() {
                     {selectedItem.type === 'verse' && selectedItem.reference && (
                       <span className="text-gray-600"> — {selectedItem.reference}</span>
                     )}
-                    {fetchedVerseText && !selectedItem.text && selectedVersion === 'ESV' && (
+                    {fetchedVerseText && !selectedItem.text && selectedVersion === 'NIV' && (
                       <div className="mt-1 text-xs text-gray-500 italic">
                         Auto-fetched from Bible API
                       </div>
                     )}
-                    {selectedVersion !== 'ESV' && alternateVerseText && (
+                    {selectedVersion !== 'NIV' && alternateVerseText && (
                       <div className="mt-1 text-xs text-gray-500 italic">
-                        Viewing {selectedVersion} translation (ESV is stored)
+                        Viewing {selectedVersion} translation (NIV is stored)
                       </div>
                     )}
                     {fetchingVerse && (

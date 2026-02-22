@@ -12,7 +12,7 @@ This directory contains SQL scripts to populate your database with memory verses
 ## Auto-Creation (Recommended)
 
 The app now automatically fetches and creates Bible verses on-demand when they are first recorded. You don't need to pre-load verses - just record a verse reference (e.g., "John 3:16") and the app will:
-1. Fetch the verse text from the Bible API (ESV)
+1. Fetch the verse text from the Bible API (NIV)
 2. Create a memory item with appropriate points
 3. Save it to the database for future use
 
@@ -92,4 +92,4 @@ Feel free to:
 
 ## Bible Translation
 
-The verse_library.sql uses the King James Version (KJV). However, the auto-creation feature uses ESV (English Standard Version) by default. If you manually load verses from verse_library.sql, you may want to update them to ESV for consistency, or just let the auto-creation handle new verses.
+The verse_library.sql uses the King James Version (KJV). However, the auto-creation feature uses NIV (English Standard Version) by default. If you manually load verses from verse_library.sql, you may want to update them to NIV for consistency, or just let the auto-creation handle new verses.

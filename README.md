@@ -23,7 +23,7 @@ Leaders can memorize too (to set a good example!) and are marked with a flag in 
 ## ✨ Key Features
 
 ### 📚 Bible Verse System
-- **Auto-fetch verses**: Type "John 3:16" and the app fetches the ESV text automatically
+- **Auto-fetch verses**: Type "John 3:16" and the app fetches the NIV text automatically
 - **Multiple versions**: View verses in ESV, NIV, KJV, NKJV, NLT, or NASB
 - **Smart validation**: Prevents impossible verses like "John 50:1" or "1 John 1:800"
 - **Verse ranges**: Support for multi-verse passages like "Psalm 23:1-6"

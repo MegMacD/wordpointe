@@ -1,3 +1,14 @@
+-- ⚠️ DEPRECATED: This file is kept for reference only
+-- 
+-- NEW APPROACH: Use the seed script instead to fetch verses from the Bible API
+-- This ensures you get the correct NIV translation and up-to-date text.
+--
+-- Run: cd web && npm run seed:verses
+-- See: docs/SEEDING_VERSES.md for details
+--
+-- This SQL file has hardcoded ESV text which may be outdated.
+-- The new script fetches verses dynamically from the Bible API.
+
 -- Common Memory Verses for Sunday School
 -- This preloads commonly memorized Bible verses in ESV
 -- All verses use 1 point for repeats

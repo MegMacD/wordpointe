@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-server';
 import { requireAdmin } from '@/lib/auth';
 import { MemoryItem } from '@/lib/types';
+import { validateBibleReference } from '@/lib/bible-api';
 
 export async function GET(
   request: NextRequest,
@@ -47,6 +48,29 @@ export async function PATCH(
     const { id } = await params;
     const supabase = getSupabaseAdmin();
     const body = await request.json();
+
+    // Get current item to check type if not provided in update
+    let itemType = body.type;
+    if (!itemType && body.reference) {
+      const { data: currentItem } = await supabase
+        .from('memory_items')
+        .select('type')
+        .eq('id', id)
+        .single();
+      itemType = currentItem?.type;
+    }
+
+    // Normalize reference if it's being updated and it's a verse
+    if (body.reference && itemType === 'verse') {
+      const validation = validateBibleReference(body.reference.trim());
+      if (!validation.isValid) {
+        return NextResponse.json(
+          { error: validation.error || 'Invalid verse reference format' },
+          { status: 400 }
+        );
+      }
+      body.reference = validation.normalized;
+    }
 
     const { data, error } = await supabase
       .from('memory_items')

@@ -11,13 +11,13 @@ Word Pointe automatically fetches and stores Bible verse text from external APIs
   - Creates a new memory item with the verse text
   - Sets the item as **active** so it's immediately available
   - Calculates default points (10 base + 2 per verse in range, capped at 30)
-  - Uses **ESV** (English Standard Version) as the single version
+  - Uses **NIV** (New International Version) as the single version
 - Subsequent recordings use the saved memory item
 - Database grows organically based on actual usage
 
 ### 2. **Bible API Sources**
 - **Primary**: bible-api.com (free, no auth, KJV) - used for reference parsing
-- **ESV API**: API.Bible with ESV version - used for verse text
+- **NIV API**: API.Bible with NIV version - used for verse text
 
 ### 3. **Caching**
 - Fetched verses are cached for 7 days to reduce API calls
@@ -32,7 +32,7 @@ Word Pointe automatically fetches and stores Bible verse text from external APIs
    ```
    BIBLE_API_KEY=your_api_key_here
    ```
-3. The app uses ESV by default - no version selection needed
+3. The app uses NIV by default - no version selection needed
 
 ## Features
 
@@ -51,7 +51,7 @@ Word Pointe automatically fetches and stores Bible verse text from external APIs
 | Version | Name | Availability |
 ## Bible Version
 
-The app uses **ESV (English Standard Version)** as the single version to prevent confusion with mixed translations in the database. If you need a different translation for a specific verse, you can manually edit the text in the Admin → Memory Items page.
+The app uses **NIV (New International Version)** as the single version to prevent confusion with mixed translations in the database. If you need a different translation for a specific verse, you can manually edit the text in the Admin → Memory Items page.
 ### Get Verse Text
 ```
 GET /api/bible/verse?reference=John+3:16&version=KJV
@@ -121,7 +121,7 @@ Admins can adjust these values manually in Memory Items if needed.
 - Verses are auto-created when first recorded
 - All auto-created verses are immediately active
 - Database grows organically based on usage
-- Single ESV version prevents translation confusion
+- Single NIV version prevents translation confusion
 
 ## Future Enhancements
 
