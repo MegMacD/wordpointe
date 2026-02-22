@@ -14,7 +14,7 @@ function ReportsPageContent() {
 
   const fetchUsers = async () => {
     setLoading(true);
-    const res = await fetch('/api/users');
+    const res = await fetch('/api/users?pageSize=1000');
     const data = await res.json();
     if (res.ok) {
       setUsers(data.items || []);

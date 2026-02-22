@@ -306,8 +306,8 @@ async function seedVerses() {
     if (result.reactivated) reactivated++;
     if (result.error) errors++;
     
-    // Small delay to avoid rate limiting
-    await new Promise(resolve => setTimeout(resolve, 200));
+    // Delay to avoid rate limiting (API.Bible free tier)
+    await new Promise(resolve => setTimeout(resolve, 1000));
   }
   
   console.log('\n✨ Seeding Complete!\n');
