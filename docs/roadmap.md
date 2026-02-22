@@ -58,6 +58,11 @@
 - Multi-class/organizations with scoping
 - Charts/visual dashboards
 - Offline-capable PWA mode
+- **Junior Kids Simplified Verses**
+  - Add optional simplified/shorter text column for verses
+  - Target younger kids who need easier versions
+  - Functions same as regular verse (same points structure)
+  - Wait and evaluate actual need before implementation
 
 ## Backlog (prioritized)
 1) Duplicate detection on user add (string similarity)
