@@ -65,12 +65,22 @@
   - Wait and evaluate actual need before implementation
 
 ## Backlog (prioritized)
-1) Duplicate detection on user add (string similarity)
-2) CSV export endpoints (server-generated)
-3) Verse text cache and display
-4) Admin secret rotation & management UX
-5) Print styles for reports
-6) Keyboard shortcuts for record flow
-7) Class/org scoping (schema changes)
-8) PWA install and offline cache for static assets
+1) **Fix Bible API verse text fetching (BLOCKED)**
+   - API.Bible NIV authorization issue (401 Unauthorized)
+   - Valid API key works in Swagger but fails in app
+   - May require special licensing for NIV access
+   - Currently using ESV text in seed files as fallback
+   - Scripts ready: seed-common-verses.js, seed-custom-verses.js
+2) **Update help page once API is fixed**
+   - Document ability to quickly add a verse on-the-fly during recording
+   - Explain auto-creation with appropriate points
+   - Update UI flows documentation
+3) Duplicate detection on user add (string similarity)
+4) CSV export endpoints (server-generated)
+5) Verse text cache and display
+6) Admin secret rotation & management UX
+7) Print styles for reports
+8) Keyboard shortcuts for record flow
+9) Class/org scoping (schema changes)
+10) PWA install and offline cache for static assets
 

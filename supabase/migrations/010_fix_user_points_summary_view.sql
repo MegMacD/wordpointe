@@ -1,4 +1,6 @@
--- Consolidated migration: user_points_summary view with all current fields
+-- Fix user_points_summary view to include total_earned and legacy points
+-- This fixes the leaderboard and ensures legacy points from users.total_points are included
+
 DROP VIEW IF EXISTS user_points_summary;
 
 CREATE VIEW user_points_summary AS
@@ -27,3 +29,10 @@ LEFT JOIN spend_records s ON s.user_id = u.id AND s.undone = false
 GROUP BY u.id, u.name, u.is_leader, u.notes, u.display_accommodation_note, u."emojiIcon", u.total_points;
 
 COMMENT ON VIEW user_points_summary IS 'User points with total_earned (lifetime) and current_points (spendable balance), including legacy points from users.total_points';
+
+-- Verify the fix
+SELECT name, total_earned, current_points 
+FROM user_points_summary 
+WHERE total_earned > 0 OR current_points > 0
+ORDER BY total_earned DESC 
+LIMIT 10;

@@ -166,7 +166,7 @@ async function fetchVerseFromAPI(reference, version = 'NIV') {
       : `${bookCode}.${chapter}.${startVerse}`;
     
     const response = await fetch(
-      `https://api.scripture.api.bible/v1/bibles/${bibleId}/verses/${verseId}`,
+      `https://rest.api.bible/v1/bibles/${bibleId}/verses/${verseId}`,
       {
         headers: { 'api-key': apiKey }
       }
@@ -178,10 +178,11 @@ async function fetchVerseFromAPI(reference, version = 'NIV') {
     
     const data = await response.json();
     
-    // Clean up HTML tags from verse text
+    // Clean up HTML tags and verse numbers from verse text
     const text = data.data?.content
-      ?.replace(/<[^>]*>/g, '')
-      .replace(/\s+/g, ' ')
+      ?.replace(/<[^>]*>/g, '')  // Remove HTML tags
+      .replace(/^\d+/g, '')       // Remove leading verse numbers
+      .replace(/\s+/g, ' ')       // Normalize whitespace
       .trim();
     
     if (!text) {

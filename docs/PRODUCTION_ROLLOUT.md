@@ -133,7 +133,7 @@ If you want to reset default point values:
 UPDATE settings 
 SET 
   default_points_first = 10,
-  default_points_repeat = 5,
+  default_points_repeat = 1,
   bible_version = 'NIV'
 WHERE id IS NOT NULL;
 ```
@@ -156,13 +156,13 @@ SELECT * FROM settings;
 UPDATE settings 
 SET 
   default_points_first = 10,  -- Points for first-time recitation
-  default_points_repeat = 5,  -- Points for repeat recitation
+  default_points_repeat = 1,  -- Points for repeat recitation
   bible_version = 'NIV'       -- Default Bible version
 WHERE id IS NOT NULL;
 
 -- If no settings exist, create them
 INSERT INTO settings (default_points_first, default_points_repeat, bible_version)
-SELECT 10, 5, 'NIV'
+SELECT 10, 1, 'NIV'
 WHERE NOT EXISTS (SELECT 1 FROM settings);
 
 -- Verify settings

@@ -337,7 +337,7 @@ async function fetchFromAPIBible(reference: string, version: string = 'KJV'): Pr
     // Version IDs for API.Bible
     const versionMap: Record<string, string> = {
       'KJV': 'de4e12af7f28f599-02',  // King James Version
-      'NIV': '06125adad2d5898a-01',  // New International Version (requires permission)
+      'NIV': '9879dbb7cfe39e4d-01',  // New International Version 2011
       'ESV': 'f421fe261da7624f-01',  // English Standard Version (requires permission)
       'NLT': '01b29f4b342acc35-01',  // New Living Translation (requires permission)
     };
@@ -345,7 +345,7 @@ async function fetchFromAPIBible(reference: string, version: string = 'KJV'): Pr
     const bibleId = versionMap[version] || versionMap['KJV'];
     
     const response = await fetch(
-      `https://api.scripture.api.bible/v1/bibles/${bibleId}/verses/${verseId}`,
+      `https://rest.api.bible/v1/bibles/${bibleId}/verses/${verseId}`,
       {
         headers: {
           'api-key': apiKey
@@ -361,10 +361,11 @@ async function fetchFromAPIBible(reference: string, version: string = 'KJV'): Pr
     
     const data = await response.json();
     
-    // Clean up HTML tags from verse text
+    // Clean up HTML tags and verse numbers from verse text
     const text = data.data?.content
-      ?.replace(/<[^>]*>/g, '')
-      .replace(/\s+/g, ' ')
+      ?.replace(/<[^>]*>/g, '')  // Remove HTML tags
+      .replace(/^\d+/g, '')       // Remove leading verse numbers
+      .replace(/\s+/g, ' ')       // Normalize whitespace
       .trim();
     
     return {

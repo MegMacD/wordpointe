@@ -41,12 +41,6 @@ INSERT INTO memory_items (type, reference, text, points_first, points_repeat, ac
   ('verse', 'Colossians 3:20', 'Children, obey your parents in all things: for this is well pleasing unto the Lord.', 10, 5, true),
   ('verse', 'Matthew 28:19-20', 'Go ye therefore, and teach all nations, baptizing them in the name of the Father, and of the Son, and of the Holy Ghost: Teaching them to observe all things whatsoever I have commanded you: and, lo, I am with you always, even unto the end of the world.', 25, 15, true),
   
-  -- Shorter verses for younger children
-  ('verse', 'Jesus wept', 'Jesus wept.', 3, 2, true),
-  ('verse', 'God is love', 'God is love.', 3, 2, true),
-  ('verse', 'Be ye kind', 'Be ye kind one to another.', 5, 3, true),
-  ('verse', 'Children obey', 'Children, obey your parents.', 5, 3, true),
-  
   -- Memory aids and categories
   ('custom', 'Books of the New Testament', 'Matthew, Mark, Luke, John, Acts, Romans, 1 Corinthians, 2 Corinthians, Galatians, Ephesians, Philippians, Colossians, 1 Thessalonians, 2 Thessalonians, 1 Timothy, 2 Timothy, Titus, Philemon, Hebrews, James, 1 Peter, 2 Peter, 1 John, 2 John, 3 John, Jude, Revelation', 25, 15, true),
   ('custom', 'Books of the Old Testament (first 10)', 'Genesis, Exodus, Leviticus, Numbers, Deuteronomy, Joshua, Judges, Ruth, 1 Samuel, 2 Samuel', 20, 12, true),

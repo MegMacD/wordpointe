@@ -117,13 +117,13 @@ SELECT * FROM settings;
 UPDATE settings 
 SET 
   default_points_first = 10,  -- Points for first-time recitation
-  default_points_repeat = 5,  -- Points for repeat recitation
+  default_points_repeat = 1,  -- Points for repeat recitation
   bible_version = 'NIV'       -- Default Bible version (ESV, NIV, KJV, NKJV, NLT, NASB)
 WHERE id IS NOT NULL;
 
 -- If no settings exist, create them
 INSERT INTO settings (default_points_first, default_points_repeat, bible_version)
-SELECT 10, 5, 'NIV'
+SELECT 10, 1, 'NIV'
 WHERE NOT EXISTS (SELECT 1 FROM settings);
 
 -- Verify settings updated
@@ -135,7 +135,7 @@ SELECT
   created_at
 FROM settings;
 
--- Expected: default_points_first = 10, default_points_repeat = 5, bible_version = 'NIV'
+-- Expected: default_points_first = 10, default_points_repeat = 1, bible_version = 'NIV'
 -- (or whatever values you set above)
 
 -- ============================================================================
