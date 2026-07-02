@@ -6,6 +6,7 @@ import AuthGuard from '@/components/AuthGuard';
 import UserFormFields from '@/components/UserFormFields';
 import SearchableDropdown from '@/components/SearchableDropdown';
 import { validateBibleReference, validateBibleReferenceExists, getBookSuggestions } from '@/lib/bible-api';
+import { DEFAULT_BIBLE_VERSION, getEffectiveBibleVersion } from '@/lib/bible-version';
 
 function RecordPageContent() {
     // ...existing code...
@@ -36,7 +37,7 @@ function RecordPageContent() {
   const [useCustomReference, setUseCustomReference] = useState(false);
   const [referenceError, setReferenceError] = useState<string>('');
   const [bookSuggestions, setBookSuggestions] = useState<string[]>([]);
-  const [selectedVersion, setSelectedVersion] = useState<string>('NIV'); // NIV is now the stored/default version
+  const [selectedVersion, setSelectedVersion] = useState<string>(DEFAULT_BIBLE_VERSION);
   const [alternateVerseText, setAlternateVerseText] = useState<string>('');
   const [fetchingAlternateVerse, setFetchingAlternateVerse] = useState(false);
 
@@ -102,9 +103,11 @@ function RecordPageContent() {
       fetchVerseIfNeeded(selectedItemId);
     }
     // Reset version when item changes
-    setSelectedVersion('NIV');
+    setSelectedVersion(
+      getEffectiveBibleVersion(memoryItems.find(item => item.id === selectedItemId)?.bible_version)
+    );
     setAlternateVerseText('');
-  }, [selectedUserId, selectedItemId, useCustomReference, customReference]);
+  }, [selectedUserId, selectedItemId, useCustomReference, customReference, memoryItems]);
 
   // Fetch verse text for Bible verses without stored text
   const fetchVerseIfNeeded = async (itemId: string) => {
@@ -140,7 +143,7 @@ function RecordPageContent() {
 
   // Fetch alternate version of verse
   const fetchAlternateVersion = async (reference: string, version: string) => {
-    if (!reference || version === 'NIV') {
+    if (!reference || version === getEffectiveBibleVersion(selectedItem?.bible_version)) {
       setAlternateVerseText('');
       return;
     }
@@ -192,6 +195,7 @@ function RecordPageContent() {
     : memoryItems.filter(item => item.type === itemFilter);
 
   const selectedItem = memoryItems.find((item) => item.id === selectedItemId);
+  const storedVersion = getEffectiveBibleVersion(selectedItem?.bible_version);
 
   const recentMemoryItems = recentItems
     .map(id => memoryItems.find(item => item.id === id))
@@ -199,12 +203,12 @@ function RecordPageContent() {
 
   // Handle version change - must come after selectedItem is defined
   useEffect(() => {
-    if (selectedItem?.type === 'verse' && selectedItem.reference && selectedVersion !== 'ESV') {
+    if (selectedItem?.type === 'verse' && selectedItem.reference && selectedVersion !== storedVersion) {
       fetchAlternateVersion(selectedItem.reference, selectedVersion);
     } else {
       setAlternateVerseText('');
     }
-  }, [selectedVersion, selectedItem]);
+  }, [selectedVersion, selectedItem, storedVersion]);
 
   const handleUserAdded = async () => {
     setShowAddUser(false);
@@ -256,7 +260,7 @@ function RecordPageContent() {
       setReferenceError('');
       
       // Verify verse actually exists in the Bible
-      const validation = await validateBibleReferenceExists(customReference);
+      const validation = await validateBibleReferenceExists(customReference, selectedVersion);
       if (!validation.isValid) {
         setReferenceError(validation.error || 'Invalid reference');
         setLoading(false);
@@ -649,7 +653,7 @@ function RecordPageContent() {
                 
                 {!referenceError && customReference && (
                   <p className="mt-2 text-xs text-gray-600">
-                    🪄 Verse will be verified and automatically fetched from the Bible API (NIV)
+                    Verse will be verified and automatically fetched from the configured Bible version
                   </p>
                 )}
               </div>
@@ -666,7 +670,8 @@ function RecordPageContent() {
                       onChange={(e) => setSelectedVersion(e.target.value)}
                       className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-[#D1DA8A] focus:outline-none focus:ring-2 focus:ring-[#D1DA8A]/20"
                     >
-                      <option value="NIV">NIV (Stored)</option>
+                      <option value={storedVersion}>{storedVersion} (Stored)</option>
+                      <option value="NIV">NIV</option>
                       <option value="ESV">ESV</option>
                       <option value="KJV">KJV</option>
                       <option value="NKJV">NKJV</option>
@@ -692,7 +697,7 @@ function RecordPageContent() {
                       </span>
                     ) : (
                       <span className="ml-1">
-                        {selectedVersion === 'NIV' 
+                        {selectedVersion === storedVersion
                           ? (selectedItem.text || fetchedVerseText)
                           : (alternateVerseText || selectedItem.text || fetchedVerseText)}
                       </span>
@@ -700,14 +705,14 @@ function RecordPageContent() {
                     {selectedItem.type === 'verse' && selectedItem.reference && (
                       <span className="text-gray-600"> — {selectedItem.reference}</span>
                     )}
-                    {fetchedVerseText && !selectedItem.text && selectedVersion === 'NIV' && (
+                    {fetchedVerseText && !selectedItem.text && selectedVersion === storedVersion && (
                       <div className="mt-1 text-xs text-gray-500 italic">
                         Auto-fetched from Bible API
                       </div>
                     )}
-                    {selectedVersion !== 'NIV' && alternateVerseText && (
+                    {selectedVersion !== storedVersion && alternateVerseText && (
                       <div className="mt-1 text-xs text-gray-500 italic">
-                        Viewing {selectedVersion} translation (NIV is stored)
+                        Viewing {selectedVersion} translation ({storedVersion} is stored)
                       </div>
                     )}
                     {fetchingVerse && (

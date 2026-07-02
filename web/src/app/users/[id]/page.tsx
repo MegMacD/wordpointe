@@ -128,6 +128,7 @@ function UserDetailPageContent() {
               </div>
             </div>
           )}
+
         </div>
 
         {/* Tabs */}

@@ -4,6 +4,7 @@ import { requireAuth } from '@/lib/auth';
 import { computePoints } from '@/lib/points';
 import { VerseRecord } from '@/lib/types';
 import { fetchBibleVerse, validateBibleReference } from '@/lib/bible-api';
+import { DEFAULT_BIBLE_VERSION } from '@/lib/bible-version';
 
 export async function GET(request: NextRequest) {
   try {
@@ -135,12 +136,13 @@ export async function POST(request: NextRequest) {
     if (memoryItem.error || !memoryItem.data) {
       // Memory item doesn't exist - this might be a verse reference that needs to be created
       let reference = memory_item_id;
-      
+
       // Normalize the reference if it's a verse
       const validation = validateBibleReference(reference);
       if (validation.isValid) {
         reference = validation.normalized!;
       }
+
       // Check for inactive item with same reference
       const { data: inactiveItem } = await supabase
         .from('memory_items')
@@ -167,24 +169,28 @@ export async function POST(request: NextRequest) {
       } else {
         // Create new item
         console.log(`Memory item not found, attempting to create for reference: ${reference}`);
-        // Fetch verse from Bible API (NIV only)
-        const verseData = await fetchBibleVerse(reference, 'NIV');
+
+        const { data: settings } = await supabase
+          .from('settings')
+          .select('bible_version, default_points_first, default_points_repeat')
+          .single();
+
+        const bibleVersion = settings?.bible_version || DEFAULT_BIBLE_VERSION;
+
+        // Fetch verse from Bible API using configured default version
+        const verseData = await fetchBibleVerse(reference, bibleVersion);
         if (!verseData) {
           return NextResponse.json(
             { error: 'Memory item not found and could not fetch verse from API' },
             { status: 404 }
           );
         }
-        // Get default points from settings
-        const { data: settings } = await supabase
-          .from('settings')
-          .select('default_points_first, default_points_repeat')
-          .single();
-        
+
         const points = {
           first: settings?.default_points_first ?? 10,
           repeat: settings?.default_points_repeat ?? 5
         };
+
         // Create the memory item
         const { data: newItem, error: createError } = await supabase
           .from('memory_items')
@@ -195,7 +201,7 @@ export async function POST(request: NextRequest) {
             points_first: points.first,
             points_repeat: points.repeat,
             active: true, // Auto-activate
-            bible_version: 'NIV',
+            bible_version: bibleVersion,
           })
           .select()
           .single();

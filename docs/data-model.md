@@ -18,10 +18,18 @@ memory_items (id) 1---* verse_records (memory_item_id)
 - id uuid pk default gen_random_uuid()
 - name text not null
 - is_leader boolean default false
+- role text check in ('leader','admin') default 'leader' (auth authorization level)
+- password_hash text nullable (non-null means login enabled)
 - notes text
 - total_points int default 0 (not used for totals; keep for legacy/simple UI)
 - created_at timestamptz default now()
 - updated_at timestamptz default now()
+
+#### users semantics
+- `is_leader` is a program/person classification used in UI/reporting (leader vs student labels).
+- `role` is auth authorization for logged-in accounts only (`leader` or `admin`).
+- `password_hash` controls whether login is enabled for that user.
+- Most child/student rows may still have `role='leader'` because `role` has no `student` option; this does not grant access unless `password_hash` exists and a session is active.
 
 ### memory_items
 - id uuid pk default gen_random_uuid()

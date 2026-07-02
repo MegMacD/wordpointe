@@ -14,7 +14,8 @@ export interface UserSummary {
   name: string;
   is_leader: boolean;
   current_points: number;
-  emojiIcon: string; // User's emoji icon (always present)
+  hasLoginAccess?: boolean;
+  emojiIcon?: string; // User's emoji icon
   notes?: string | null;
   displayAccommodationNote?: boolean;
 }

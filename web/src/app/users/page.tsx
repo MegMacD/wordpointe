@@ -7,10 +7,13 @@ import AuthGuard from '@/components/AuthGuard';
 import UserForm from '@/components/UserForm';
 import { EMOJI_ICON_OPTIONS } from '@/components/emojiIconOptions';
 
+const USERS_PAGE_SIZE = 20;
+
 interface EditingUser {
   id: string;
   name: string;
   is_leader: boolean;
+  role?: 'leader' | 'admin';
   notes?: string;
   emojiIcon?: string;
   displayAccommodationNote?: boolean;
@@ -18,32 +21,94 @@ interface EditingUser {
 
 function UsersPageContent() {
   const [users, setUsers] = useState<UserSummary[]>([]);
+  const [allUsers, setAllUsers] = useState<UserSummary[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [search, setSearch] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const [loading, setLoading] = useState(true);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingUser, setEditingUser] = useState<EditingUser | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showLoginAccess, setShowLoginAccess] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   useEffect(() => {
-    fetchUsers();
+    void checkAdmin();
   }, []);
 
-  const fetchUsers = async () => {
+  const checkAdmin = async () => {
+    const res = await fetch('/api/auth/me');
+    const data = await res.json();
+    if (data.user?.role === 'admin') {
+      setIsAdmin(true);
+    }
+  };
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const nextSearch = searchInput.trim();
+      if (nextSearch !== search) {
+        setCurrentPage(1);
+        setSearch(nextSearch);
+      }
+    }, 250);
+
+    return () => window.clearTimeout(timer);
+  }, [searchInput, search]);
+
+  useEffect(() => {
+    void fetchUsers(currentPage, search);
+  }, [currentPage, search]);
+
+  useEffect(() => {
+    if (showAddForm && allUsers.length === 0) {
+      void fetchAllUsers();
+    }
+  }, [showAddForm, allUsers.length]);
+
+  const fetchUsers = async (page = currentPage, query = search) => {
     setLoading(true);
-    const res = await fetch('/api/users?pageSize=1000');
+    const params = new URLSearchParams({
+      page: String(page),
+      pageSize: String(USERS_PAGE_SIZE),
+    });
+
+    if (query) {
+      params.set('q', query);
+    }
+
+    const res = await fetch(`/api/users?${params.toString()}`);
     const data = await res.json();
     if (res.ok) {
       setUsers(data.items || []);
+      setTotalUsers(data.total || 0);
     }
     setLoading(false);
   };
 
+  const fetchAllUsers = async () => {
+    const res = await fetch('/api/users');
+    const data = await res.json();
+    if (res.ok) {
+      setAllUsers(data.items || []);
+    }
+  };
+
   const handleUserAdded = () => {
     setShowAddForm(false);
-    fetchUsers(); // Refresh the users list
+    setCurrentPage(1);
+    void fetchUsers(1, search); // Refresh the users list
+    if (allUsers.length > 0) {
+      void fetchAllUsers();
+    }
     setMessage({ type: 'success', text: 'User added successfully!' });
     setTimeout(() => setMessage(null), 3000);
   };
@@ -51,6 +116,10 @@ function UsersPageContent() {
   const handleEditUser = async (user: UserSummary) => {
     setActionLoading(user.id);
     setShowEmojiPicker(false); // Reset emoji picker state
+    setShowLoginAccess(false);
+    setNewPassword('');
+    setPasswordMessage(null);
+    setShowClearConfirm(false);
     try {
       // Fetch full user data including notes
       const res = await fetch(`/api/users/${user.id}`);
@@ -60,6 +129,7 @@ function UsersPageContent() {
           id: fullUser.id,
           name: fullUser.name,
           is_leader: fullUser.is_leader,
+          role: fullUser.role,
           notes: fullUser.notes || '',
           emojiIcon: fullUser.emojiIcon || '',
           displayAccommodationNote: !!fullUser.display_accommodation_note,
@@ -70,6 +140,63 @@ function UsersPageContent() {
       setTimeout(() => setMessage(null), 5000);
     } finally {
       setActionLoading(null);
+    }
+  };
+
+  const handleSetPassword = async () => {
+    if (!editingUser) return;
+    if (!editingUser.is_leader && editingUser.role !== 'admin') {
+      setPasswordMessage({ type: 'error', text: 'Only leaders or admins can have login access' });
+      return;
+    }
+    if (!newPassword || newPassword.length < 6) {
+      setPasswordMessage({ type: 'error', text: 'Password must be at least 6 characters' });
+      return;
+    }
+
+    setPasswordLoading(true);
+    setPasswordMessage(null);
+    try {
+      const res = await fetch(`/api/admin/users/${editingUser.id}/set-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: newPassword }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setPasswordMessage({ type: 'success', text: data.message || 'Password updated' });
+        setNewPassword('');
+      } else {
+        setPasswordMessage({ type: 'error', text: data.error || 'Failed to update password' });
+      }
+    } catch {
+      setPasswordMessage({ type: 'error', text: 'Network error while updating password' });
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
+  const handleClearPassword = async () => {
+    if (!editingUser) return;
+    setPasswordLoading(true);
+    setPasswordMessage(null);
+    try {
+      const res = await fetch(`/api/admin/users/${editingUser.id}/set-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clear: true }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setPasswordMessage({ type: 'success', text: data.message || 'Login access removed' });
+        setShowClearConfirm(false);
+      } else {
+        setPasswordMessage({ type: 'error', text: data.error || 'Failed to remove login access' });
+      }
+    } catch {
+      setPasswordMessage({ type: 'error', text: 'Network error while removing login access' });
+    } finally {
+      setPasswordLoading(false);
     }
   };
 
@@ -95,7 +222,10 @@ function UsersPageContent() {
       if (res.ok) {
         setEditingUser(null);
         setShowEmojiPicker(false);
-        fetchUsers();
+        void fetchUsers(currentPage, search);
+        if (allUsers.length > 0) {
+          void fetchAllUsers();
+        }
         setMessage({ type: 'success', text: 'User updated successfully!' });
         setTimeout(() => setMessage(null), 3000);
       } else {
@@ -120,7 +250,15 @@ function UsersPageContent() {
 
       if (res.ok) {
         setDeleteConfirm(null);
-        fetchUsers();
+        const nextPage = users.length === 1 && currentPage > 1 ? currentPage - 1 : currentPage;
+        if (nextPage !== currentPage) {
+          setCurrentPage(nextPage);
+        } else {
+          void fetchUsers(nextPage, search);
+        }
+        if (allUsers.length > 0) {
+          void fetchAllUsers();
+        }
         setMessage({ type: 'success', text: 'User deleted successfully!' });
         setTimeout(() => setMessage(null), 3000);
       } else {
@@ -136,9 +274,9 @@ function UsersPageContent() {
     }
   };
 
-  const filteredUsers = users.filter((u) =>
-    u.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const totalPages = Math.max(1, Math.ceil(totalUsers / USERS_PAGE_SIZE));
+  const pageStart = totalUsers === 0 ? 0 : (currentPage - 1) * USERS_PAGE_SIZE + 1;
+  const pageEnd = totalUsers === 0 ? 0 : pageStart + users.length - 1;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-4 sm:py-8 sm:px-6 lg:px-8">
@@ -172,7 +310,7 @@ function UsersPageContent() {
           <UserForm
             onUserAdded={handleUserAdded}
             onCancel={() => setShowAddForm(false)}
-            existingUsers={users}
+            existingUsers={allUsers.length > 0 ? allUsers : users}
           />
         )}
 
@@ -255,10 +393,7 @@ function UsersPageContent() {
                     id="edit-name"
                     value={editingUser.name}
                     onChange={(e) => setEditingUser({ ...editingUser, name: e.target.value })}
-                    className="bl{
-                    setEditingUser(null);
-                    setShowEmojiPicker(false);
-                  }l border-2 border-gray-200 px-4 py-3 shadow-sm transition-colors focus:border-[#B5CED8] focus:outline-none focus:ring-2 focus:ring-[#B5CED8]/20"
+                    className="block w-full rounded-xl border-2 border-gray-200 px-4 py-3 shadow-sm transition-colors focus:border-[#B5CED8] focus:outline-none focus:ring-2 focus:ring-[#B5CED8]/20"
                     required
                   />
                 </div>
@@ -307,6 +442,102 @@ function UsersPageContent() {
                     placeholder="Any additional notes about this person"
                   />
                 </div>
+
+                {isAdmin && (
+                  <div className="rounded-xl border-2 border-gray-200 bg-gray-50 p-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowLoginAccess(!showLoginAccess)}
+                      className="flex w-full items-center justify-between text-left"
+                    >
+                      <span className="text-sm font-semibold text-gray-700">Login Access (Admin Only)</span>
+                      <span className="text-sm text-gray-500">{showLoginAccess ? 'Hide' : 'Show'}</span>
+                    </button>
+
+                    {showLoginAccess && (
+                      <div className="mt-4 space-y-3 border-t border-gray-200 pt-4">
+                        {!editingUser.is_leader && editingUser.role !== 'admin' && (
+                          <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                            This user is not marked as a leader/admin, so login access cannot be set.
+                          </div>
+                        )}
+
+                        {passwordMessage && (
+                          <div
+                            className={`rounded-xl p-3 text-sm font-medium ${
+                              passwordMessage.type === 'success'
+                                ? 'bg-[#B5CED8]/20 text-gray-800 border border-[#B5CED8]/30'
+                                : 'bg-[#C97435]/10 text-gray-800 border border-[#C97435]/30'
+                            }`}
+                          >
+                            {passwordMessage.text}
+                          </div>
+                        )}
+
+                        <div>
+                          <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-gray-600">
+                            Set New Password
+                          </label>
+                          <div className="flex gap-2">
+                            <input
+                              type="password"
+                              value={newPassword}
+                              onChange={(e) => setNewPassword(e.target.value)}
+                              placeholder="Min 6 characters"
+                              className="block w-full rounded-xl border-2 border-gray-200 px-4 py-2.5 text-sm shadow-sm transition-colors focus:border-[#B5CED8] focus:outline-none focus:ring-2 focus:ring-[#B5CED8]/20"
+                              disabled={passwordLoading}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  void handleSetPassword();
+                                }
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => void handleSetPassword()}
+                              disabled={passwordLoading || !newPassword || (!editingUser.is_leader && editingUser.role !== 'admin')}
+                              className="rounded-xl bg-gradient-to-r from-[#B5CED8] to-[#9AB5C1] px-4 py-2.5 text-sm font-semibold text-gray-800 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
+                            >
+                              {passwordLoading ? 'Saving...' : 'Set'}
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="border-t border-gray-200 pt-3">
+                          {!showClearConfirm ? (
+                            <button
+                              type="button"
+                              onClick={() => setShowClearConfirm(true)}
+                              disabled={passwordLoading || (!editingUser.is_leader && editingUser.role !== 'admin')}
+                              className="text-sm font-medium text-[#C97435] hover:underline disabled:opacity-50"
+                            >
+                              Remove login access
+                            </button>
+                          ) : (
+                            <div className="flex items-center gap-3">
+                              <span className="text-sm text-gray-700">Remove login for {editingUser.name}?</span>
+                              <button
+                                type="button"
+                                onClick={() => void handleClearPassword()}
+                                disabled={passwordLoading}
+                                className="rounded-xl bg-[#C97435] px-3 py-1.5 text-sm font-semibold text-white transition-all hover:bg-[#B86428] disabled:opacity-50"
+                              >
+                                {passwordLoading ? 'Removing...' : 'Yes, remove'}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setShowClearConfirm(false)}
+                                className="text-sm text-gray-500 hover:text-gray-700"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
               
               <div className="mt-6 flex justify-end space-x-3">
@@ -387,8 +618,8 @@ function UsersPageContent() {
               <input
                 type="text"
                 placeholder="Search users..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
                 className="w-full sm:w-64 rounded-xl border-2 border-gray-200 px-4 py-2.5 shadow-sm transition-colors focus:border-[#B5CED8] focus:outline-none focus:ring-2 focus:ring-[#B5CED8]/20"
               />
               <button
@@ -408,7 +639,7 @@ function UsersPageContent() {
               </svg>
               <p className="mt-3 text-sm">Loading users...</p>
             </div>
-          ) : filteredUsers.length === 0 ? (
+          ) : users.length === 0 ? (
             <div className="text-center py-12">
               <svg className="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
@@ -418,75 +649,114 @@ function UsersPageContent() {
               </p>
             </div>
           ) : (
-            <div className="grid gap-2 sm:gap-3">
-              {filteredUsers.map((user) => (
-                <div
-                  key={user.id}
-                  className="group rounded-2xl border-2 border-gray-200 bg-white p-3 sm:p-4 shadow-sm transition-all hover:shadow-md hover:border-[#B5CED8]/40"
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
-                    {/* User Info */}
-                    <div className="flex items-center space-x-3 min-w-0">
-                      <div className="flex-shrink-0 flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#B5CED8] to-[#9AB5C1] shadow-sm">
-                        {user.emojiIcon ? (
-                          <span className="text-xl">{user.emojiIcon}</span>
-                        ) : (
-                          <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                          </svg>
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="text-base font-semibold text-gray-900 truncate">
-                            {user.name}
-                          </h3>
-                          {user.is_leader && (
-                            <span className="inline-flex items-center rounded-lg bg-[#B5CED8]/20 px-2 py-0.5 text-xs font-medium text-gray-800 whitespace-nowrap">
-                              Leader
-                            </span>
+            <div className="space-y-4">
+              <div className="flex flex-col gap-2 text-sm text-gray-600 sm:flex-row sm:items-center sm:justify-between">
+                <p>
+                  Showing {pageStart}-{pageEnd} of {totalUsers} user{totalUsers === 1 ? '' : 's'}
+                </p>
+                <p>
+                  Page {currentPage} of {totalPages}
+                </p>
+              </div>
+              <div className="grid gap-2 sm:gap-3">
+                {users.map((user) => (
+                  <div
+                    key={user.id}
+                    className="group rounded-2xl border-2 border-gray-200 bg-white p-3 sm:p-4 shadow-sm transition-all hover:shadow-md hover:border-[#B5CED8]/40"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
+                      {/* User Info */}
+                      <div className="flex items-center space-x-3 min-w-0">
+                        <div className="flex-shrink-0 flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#B5CED8] to-[#9AB5C1] shadow-sm">
+                          {user.emojiIcon ? (
+                            <span className="text-xl">{user.emojiIcon}</span>
+                          ) : (
+                            <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
                           )}
                         </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="text-base font-semibold text-gray-900 truncate">
+                              {user.name}
+                            </h3>
+                            {user.is_leader && (
+                              <span className="inline-flex items-center rounded-lg bg-[#B5CED8]/20 px-2 py-0.5 text-xs font-medium text-gray-800 whitespace-nowrap">
+                                Leader
+                              </span>
+                            )}
+                            {isAdmin && user.hasLoginAccess === true && (
+                              <span
+                                className="inline-flex items-center gap-1 rounded-lg bg-[#D1DA8A]/25 px-2 py-0.5 text-xs font-medium text-gray-800 whitespace-nowrap"
+                                title="Login is enabled"
+                              >
+                                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                                </svg>
+                                Login
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Link
+                          href={`/users/${user.id}`}
+                          className="flex flex-1 items-center justify-center sm:flex-none rounded-xl bg-gradient-to-r from-[#B5CED8] to-[#9AB5C1] px-3 h-11 text-sm font-semibold text-gray-800 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+                        >
+                          View Details
+                        </Link>
+                        <button
+                          onClick={() => handleEditUser(user)}
+                          disabled={actionLoading === user.id}
+                          className="flex-1 sm:flex-none text-center rounded-xl border-2 border-gray-200 bg-white px-3 h-11 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {actionLoading === user.id ? (
+                            <span className="flex items-center justify-center">
+                              <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                            </span>
+                          ) : (
+                            'Edit'
+                          )}
+                        </button>
+                        <button
+                          onClick={() => setDeleteConfirm(user.id)}
+                          className="rounded-xl border-2 border-[#C97435]/30 bg-white px-2.5 h-11 text-sm font-medium text-[#C97435] transition-all hover:bg-[#C97435]/5 hover:border-[#C97435]/50"
+                          aria-label="Delete user"
+                        >
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
                       </div>
                     </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Link
-                        href={`/users/${user.id}`}
-                        className="flex-1 sm:flex-none text-center rounded-xl bg-gradient-to-r from-[#B5CED8] to-[#9AB5C1] px-3 py-1.5 text-sm font-semibold text-gray-800 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
-                      >
-                        View Details
-                      </Link>
-                      <button
-                        onClick={() => handleEditUser(user)}
-                        disabled={actionLoading === user.id}
-                        className="flex-1 sm:flex-none text-center rounded-xl border-2 border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px]"
-                      >
-                        {actionLoading === user.id ? (
-                          <span className="flex items-center justify-center">
-                            <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                          </span>
-                        ) : (
-                          'Edit'
-                        )}
-                      </button>
-                      <button
-                        onClick={() => setDeleteConfirm(user.id)}
-                        className="rounded-xl border-2 border-[#C97435]/30 bg-white px-2.5 py-1.5 text-sm font-medium text-[#C97435] transition-all hover:bg-[#C97435]/5 hover:border-[#C97435]/50 min-h-[36px]"
-                        aria-label="Delete user"
-                      >
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                  disabled={currentPage === 1}
+                  className="rounded-xl border-2 border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Previous
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                  disabled={currentPage >= totalPages}
+                  className="rounded-xl bg-gradient-to-r from-[#B5CED8] to-[#9AB5C1] px-4 py-2 text-sm font-semibold text-gray-800 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
+                >
+                  Next
+                </button>
+              </div>
             </div>
           )}
         </div>

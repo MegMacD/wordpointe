@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { MemoryItem } from '@/lib/types';
 import { validateBibleReference, getBookSuggestions } from '@/lib/bible-api';
+import { DEFAULT_BIBLE_VERSION } from '@/lib/bible-version';
 
 interface MemoryItemFormProps {
   item?: MemoryItem | null;
@@ -26,7 +27,7 @@ export default function MemoryItemForm({
     points_first: 10,
     points_repeat: 5,
     active: true,
-    bible_version: 'NIV',
+    bible_version: DEFAULT_BIBLE_VERSION,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -44,7 +45,7 @@ export default function MemoryItemForm({
         points_first: item.points_first,
         points_repeat: item.points_repeat,
         active: item.active,
-        bible_version: item.bible_version || 'ESV',
+        bible_version: item.bible_version || DEFAULT_BIBLE_VERSION,
       });
       // If editing an existing item with text, assume manual override
       if (item.text) {

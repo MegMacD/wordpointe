@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-server';
 import { requireAdmin } from '@/lib/auth';
 import { Settings } from '@/lib/types';
+import { DEFAULT_BIBLE_VERSION } from '@/lib/bible-version';
 
 export async function GET() {
   try {
@@ -21,7 +22,7 @@ export async function GET() {
         .insert({
           default_points_first: 10,
           default_points_repeat: 5,
-          bible_version: 'KJV',
+          bible_version: DEFAULT_BIBLE_VERSION,
         })
         .select()
         .single();
@@ -78,7 +79,7 @@ export async function PATCH(request: NextRequest) {
         .insert({
           default_points_first: body.default_points_first ?? 10,
           default_points_repeat: body.default_points_repeat ?? 5,
-          bible_version: body.bible_version ?? 'KJV',
+          bible_version: body.bible_version ?? DEFAULT_BIBLE_VERSION,
         })
         .select()
         .single();

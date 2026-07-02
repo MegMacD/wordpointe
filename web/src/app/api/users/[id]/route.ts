@@ -57,12 +57,39 @@ export async function PATCH(
     const supabase = getSupabaseAdmin();
     const body = await request.json();
 
-    // Map displayAccommodationNote to display_accommodation_note
-    const updateBody = {
-      ...body,
-      display_accommodation_note: body.displayAccommodationNote,
-    };
-    delete updateBody.displayAccommodationNote;
+    // Only allow profile fields here. Auth fields (role/password_hash) should be
+    // managed through explicit auth/account admin flows.
+    const updateBody: Record<string, unknown> = {};
+
+    if (typeof body.name === 'string') {
+      updateBody.name = body.name;
+    }
+
+    if (typeof body.is_leader === 'boolean') {
+      updateBody.is_leader = body.is_leader;
+    }
+
+    if (typeof body.notes === 'string' || body.notes === null) {
+      updateBody.notes = body.notes;
+    }
+
+    if (typeof body.emojiIcon === 'string' || body.emojiIcon === null) {
+      updateBody.emojiIcon = body.emojiIcon;
+    }
+
+    if (typeof body.displayAccommodationNote === 'boolean') {
+      updateBody.display_accommodation_note = body.displayAccommodationNote;
+    }
+
+    if (Object.keys(updateBody).length === 0) {
+      return NextResponse.json(
+        { error: 'No valid fields to update' },
+        { status: 400 }
+      );
+    }
+
+    updateBody.updated_at = new Date().toISOString();
+
     const { data, error } = await supabase
       .from('users')
       .update(updateBody)

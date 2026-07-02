@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchBibleVerse, validateBibleReference } from '@/lib/bible-api';
 import { getSupabaseAdmin } from '@/lib/supabase-server';
+import { DEFAULT_BIBLE_VERSION } from '@/lib/bible-version';
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
     }
     
     // Get preferred version from settings if not specified
-    let bibleVersion = version || 'KJV';
+    let bibleVersion = version || DEFAULT_BIBLE_VERSION;
     if (!version) {
       const supabase = getSupabaseAdmin();
       const { data: settings } = await supabase

@@ -9,7 +9,10 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const q = searchParams.get('q') || '';
     const page = parseInt(searchParams.get('page') || '1');
-    const pageSize = Math.min(parseInt(searchParams.get('pageSize') || '20'), 100);
+    const pageSizeParam = searchParams.get('pageSize');
+    const pageSize = pageSizeParam
+      ? Math.min(Math.max(parseInt(pageSizeParam, 10) || 20, 1), 100)
+      : null;
 
     // Get users with points summary
     let query = supabase
@@ -20,16 +23,41 @@ export async function GET(request: NextRequest) {
       query = query.ilike('name', `%${q}%`);
     }
 
-    const { data, error, count } = await query
-      .order('name')
-      .range((page - 1) * pageSize, page * pageSize - 1);
+    let orderedQuery = query.order('name');
+
+    if (pageSize !== null) {
+      orderedQuery = orderedQuery.range((page - 1) * pageSize, page * pageSize - 1);
+    }
+
+    const { data, error, count } = await orderedQuery;
 
     if (error) {
       throw error;
     }
 
+    const summaryItems = (data || []) as UserSummary[];
+    let enrichedItems = summaryItems;
+
+    if (summaryItems.length > 0) {
+      const userIds = summaryItems.map((item) => item.id);
+      const { data: authRows, error: authError } = await supabase
+        .from('users')
+        .select('id, password_hash')
+        .in('id', userIds);
+
+      if (!authError && authRows) {
+        const loginAccessById = new Map(
+          authRows.map((row: { id: string; password_hash: string | null }) => [row.id, !!row.password_hash])
+        );
+        enrichedItems = summaryItems.map((item) => ({
+          ...item,
+          hasLoginAccess: loginAccessById.get(item.id) ?? false,
+        }));
+      }
+    }
+
     return NextResponse.json({
-      items: (data || []) as UserSummary[],
+      items: enrichedItems,
       total: count || 0,
     });
   } catch (error: any) {
