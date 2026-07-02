@@ -133,6 +133,7 @@ describe('UserForm', () => {
           body: JSON.stringify({
             name: 'John Doe',
             is_leader: false,
+            displayAccommodationNote: false,
           }),
         });
       });
@@ -166,6 +167,7 @@ describe('UserForm', () => {
           body: JSON.stringify({
             name: 'Jane Smith',
             is_leader: true,
+            displayAccommodationNote: false,
           }),
         });
       });
@@ -197,6 +199,7 @@ describe('UserForm', () => {
           body: JSON.stringify({
             name: 'Bob Wilson',
             is_leader: false,
+            displayAccommodationNote: false,
             notes: 'Great singer',
           }),
         });
@@ -229,6 +232,7 @@ describe('UserForm', () => {
           body: JSON.stringify({
             name: 'John Doe',
             is_leader: false,
+            displayAccommodationNote: false,
             notes: 'Some notes',
           }),
         });
@@ -261,6 +265,7 @@ describe('UserForm', () => {
           body: JSON.stringify({
             name: 'John Doe',
             is_leader: false,
+            displayAccommodationNote: false,
             // notes should not be included
           }),
         });

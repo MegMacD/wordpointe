@@ -11,8 +11,8 @@ jest.mock('next/navigation', () => ({
 global.fetch = jest.fn();
 
 describe('AuthGuard', () => {
-  const mockPush = jest.fn();
-  const mockRouter = { push: mockPush };
+  const mockReplace = jest.fn();
+  const mockRouter = { replace: mockReplace };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -32,7 +32,7 @@ describe('AuthGuard', () => {
     );
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/login');
+      expect(mockReplace).toHaveBeenCalledWith('/login');
     });
 
     expect(screen.queryByText('Protected Content')).not.toBeInTheDocument();
@@ -61,7 +61,7 @@ describe('AuthGuard', () => {
       expect(screen.getByText('Protected Content')).toBeInTheDocument();
     });
 
-    expect(mockPush).not.toHaveBeenCalled();
+    expect(mockReplace).not.toHaveBeenCalled();
   });
 
   it('should redirect non-admin users from admin pages', async () => {
@@ -84,7 +84,7 @@ describe('AuthGuard', () => {
     );
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/');
+      expect(mockReplace).toHaveBeenCalledWith('/');
     });
 
     expect(screen.queryByText('Admin Content')).not.toBeInTheDocument();
@@ -113,7 +113,7 @@ describe('AuthGuard', () => {
       expect(screen.getByText('Admin Content')).toBeInTheDocument();
     });
 
-    expect(mockPush).not.toHaveBeenCalled();
+    expect(mockReplace).not.toHaveBeenCalled();
   });
 
   it('should show loading state initially', () => {

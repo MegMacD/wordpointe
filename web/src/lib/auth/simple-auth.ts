@@ -44,11 +44,13 @@ async function getSessionUser(token: string): Promise<AuthUser | null> {
 
   const { data: user } = await supabase
     .from('users')
-    .select('id, name, role, is_leader')
+    .select('id, name, role, is_leader, password_hash')
     .eq('id', session.user_id)
     .single();
 
-  if (!user || !user.role) {
+  // Keep session validity aligned with login eligibility.
+  // If login is disabled (password removed), existing sessions should no longer work.
+  if (!user || !user.role || !user.password_hash) {
     return null;
   }
 

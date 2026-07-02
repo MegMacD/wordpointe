@@ -1,3 +1,5 @@
+import { DEFAULT_BIBLE_VERSION } from './bible-version';
+
 /**
  * Bible API Service
  * Fetches Bible verses from external APIs with caching
@@ -146,7 +148,10 @@ export function validateBibleReference(reference: string): {
  * Validate that a Bible reference actually exists by attempting to fetch it
  * This is an async version that verifies the verse exists in the Bible
  */
-export async function validateBibleReferenceExists(reference: string): Promise<{
+export async function validateBibleReferenceExists(
+  reference: string,
+  version: string = DEFAULT_BIBLE_VERSION
+): Promise<{
   isValid: boolean;
   normalized?: string;
   error?: string;
@@ -159,7 +164,7 @@ export async function validateBibleReferenceExists(reference: string): Promise<{
 
   // Then verify verse exists by fetching from API
   try {
-    const verse = await fetchBibleVerse(formatCheck.normalized!, 'ESV');
+    const verse = await fetchBibleVerse(formatCheck.normalized!, version);
     if (!verse) {
       return {
         isValid: false,
@@ -332,20 +337,37 @@ async function fetchFromAPIBible(reference: string, version: string = 'KJV'): Pr
     if (!parsed) return null;
     
     const bookCode = normalizeBookName(parsed.book);
-    const verseId = `${bookCode}.${parsed.chapter}.${parsed.verse}`;
     
     // Version IDs for API.Bible
     const versionMap: Record<string, string> = {
       'KJV': 'de4e12af7f28f599-02',  // King James Version
-      'NIV': '06125adad2d5898a-01',  // New International Version (requires permission)
-      'ESV': 'f421fe261da7624f-01',  // English Standard Version (requires permission)
-      'NLT': '01b29f4b342acc35-01',  // New Living Translation (requires permission)
+      'NIV': '9879dbb7cfe39e4d-01',  // New International Version 2011
+      'ESV': 'f421fe261da7624f-01',  // English Standard Version
+      'NLT': '01b29f4b342acc35-01',  // New Living Translation
     };
     
     const bibleId = versionMap[version] || versionMap['KJV'];
     
+    // Build passage ID. For ranges like "16-18" the verses endpoint does not
+    // work — we must use the passages endpoint with the full range form.
+    const passageId = parsed.verse.includes('-')
+      ? (() => {
+          const [start, end] = parsed.verse.split('-');
+          return `${bookCode}.${parsed.chapter}.${start}-${bookCode}.${parsed.chapter}.${end}`;
+        })()
+      : `${bookCode}.${parsed.chapter}.${parsed.verse}`;
+    
+    const params = new URLSearchParams({
+      'content-type': 'text',
+      'include-notes': 'false',
+      'include-titles': 'false',
+      'include-chapter-numbers': 'false',
+      'include-verse-numbers': 'false',
+      'include-verse-spans': 'false',
+    });
+    
     const response = await fetch(
-      `https://api.scripture.api.bible/v1/bibles/${bibleId}/verses/${verseId}`,
+      `https://api.scripture.api.bible/v1/bibles/${bibleId}/passages/${passageId}?${params}`,
       {
         headers: {
           'api-key': apiKey
@@ -361,10 +383,9 @@ async function fetchFromAPIBible(reference: string, version: string = 'KJV'): Pr
     
     const data = await response.json();
     
-    // Clean up HTML tags from verse text
+    // With content-type=text the response is plain text — normalise whitespace only
     const text = data.data?.content
-      ?.replace(/<[^>]*>/g, '')
-      .replace(/\s+/g, ' ')
+      ?.replace(/\s+/g, ' ')
       .trim();
     
     return {
@@ -385,7 +406,7 @@ async function fetchFromAPIBible(reference: string, version: string = 'KJV'): Pr
  */
 export async function fetchBibleVerse(
   reference: string, 
-  version: string = 'KJV'
+  version: string = DEFAULT_BIBLE_VERSION
 ): Promise<BibleVerse | null> {
   // Check cache first
   const cacheKey = `${reference}-${version}`;

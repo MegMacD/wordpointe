@@ -3,12 +3,13 @@
 import { useState, useEffect } from 'react';
 import { Settings } from '@/lib/types';
 import AuthGuard from '@/components/AuthGuard';
+import { DEFAULT_BIBLE_VERSION } from '@/lib/bible-version';
 
 function SettingsPageContent() {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [pointsFirst, setPointsFirst] = useState<number>(10);
   const [pointsRepeat, setPointsRepeat] = useState<number>(5);
-  const [bibleVersion, setBibleVersion] = useState<string>('KJV');
+  const [bibleVersion, setBibleVersion] = useState<string>(DEFAULT_BIBLE_VERSION);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -25,7 +26,7 @@ function SettingsPageContent() {
       setSettings(data);
       setPointsFirst(data.default_points_first || 10);
       setPointsRepeat(data.default_points_repeat || 5);
-      setBibleVersion(data.bible_version || 'KJV');
+      setBibleVersion(data.bible_version || DEFAULT_BIBLE_VERSION);
     }
     setLoading(false);
   };

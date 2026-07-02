@@ -104,9 +104,13 @@ describe('Nav Component', () => {
       expect(screen.getByText('Spend')).toBeTruthy();
       expect(screen.getByText('Users')).toBeTruthy();
 
+      // Admin links are shown in the dropdown
+      fireEvent.click(screen.getByRole('button', { name: /admin/i }));
+
       // Admin should see admin links
       expect(screen.getByText('Memory Items')).toBeTruthy();
       expect(screen.getByText('User Records')).toBeTruthy();
+      expect(screen.getByText('Adjust Points')).toBeTruthy();
       expect(screen.getByText('Reports')).toBeTruthy();
       expect(screen.getByText('Settings')).toBeTruthy();
 

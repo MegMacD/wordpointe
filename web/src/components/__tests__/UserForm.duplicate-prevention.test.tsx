@@ -41,7 +41,7 @@ describe('UserForm - Duplicate Prevention', () => {
     });
     
     // Warning styling should be applied
-    expect(nameInput).toHaveClass('border-amber-300');
+    expect(nameInput).toHaveClass('border-[#DFA574]/50');
   });
 
   it('shows duplicate warning for case-insensitive matches', async () => {
@@ -93,7 +93,7 @@ describe('UserForm - Duplicate Prevention', () => {
     });
     
     // Normal styling should be restored
-    expect(nameInput).toHaveClass('border-gray-300');
+    expect(nameInput).toHaveClass('border-gray-200');
   });
 
   it('prevents form submission with duplicate name', async () => {
@@ -154,6 +154,7 @@ describe('UserForm - Duplicate Prevention', () => {
         body: JSON.stringify({
           name: 'Unique Name',
           is_leader: false,
+          displayAccommodationNote: false,
         }),
       }));
     });

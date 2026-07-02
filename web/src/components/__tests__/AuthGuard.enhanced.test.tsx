@@ -10,15 +10,15 @@ jest.mock('next/navigation', () => ({
 // Mock fetch globally
 global.fetch = jest.fn();
 
-const mockPush = jest.fn();
+const mockReplace = jest.fn();
 (useRouter as jest.Mock).mockReturnValue({
-  push: mockPush,
+  replace: mockReplace,
 });
 
 describe('AuthGuard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockPush.mockClear();
+    mockReplace.mockClear();
   });
 
   it('should render children when user is authenticated', async () => {
@@ -39,7 +39,7 @@ describe('AuthGuard', () => {
       expect(screen.getByTestId('protected-content')).toBeInTheDocument();
     });
 
-    expect(mockPush).not.toHaveBeenCalled();
+    expect(mockReplace).not.toHaveBeenCalled();
   });
 
   it('should redirect to login when user is not authenticated', async () => {
@@ -55,7 +55,7 @@ describe('AuthGuard', () => {
     );
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/login');
+      expect(mockReplace).toHaveBeenCalledWith('/login');
     });
 
     expect(screen.queryByTestId('protected-content')).not.toBeInTheDocument();
@@ -76,7 +76,7 @@ describe('AuthGuard', () => {
     );
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/');
+      expect(mockReplace).toHaveBeenCalledWith('/');
     });
 
     expect(screen.queryByTestId('protected-content')).not.toBeInTheDocument();
@@ -100,19 +100,12 @@ describe('AuthGuard', () => {
       expect(screen.getByTestId('protected-content')).toBeInTheDocument();
     });
 
-    expect(mockPush).not.toHaveBeenCalled();
+    expect(mockReplace).not.toHaveBeenCalled();
   });
 
   it('should show loading state while checking authentication', () => {
-    // Mock a delayed response
-    (global.fetch as jest.Mock).mockReturnValueOnce(
-      new Promise(resolve => setTimeout(() => resolve({
-        ok: true,
-        json: async () => ({
-          user: { id: 'user-1', name: 'Test User', role: 'leader' },
-        }),
-      }), 100))
-    );
+    // Keep the auth request pending to verify loading UI without timers.
+    (global.fetch as jest.Mock).mockReturnValueOnce(new Promise(() => {}));
 
     render(
       <AuthGuard>
@@ -134,7 +127,7 @@ describe('AuthGuard', () => {
     );
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/login');
+      expect(mockReplace).toHaveBeenCalledWith('/login');
     });
 
     expect(screen.queryByTestId('protected-content')).not.toBeInTheDocument();
@@ -158,6 +151,6 @@ describe('AuthGuard', () => {
       expect(screen.getByTestId('protected-content')).toBeInTheDocument();
     });
 
-    expect(mockPush).not.toHaveBeenCalled();
+    expect(mockReplace).not.toHaveBeenCalled();
   });
 });

@@ -4,6 +4,7 @@ import { requireAuth } from '@/lib/auth';
 import { computePoints } from '@/lib/points';
 import { VerseRecord } from '@/lib/types';
 import { fetchBibleVerse } from '@/lib/bible-api';
+import { DEFAULT_BIBLE_VERSION } from '@/lib/bible-version';
 
 // Helper to calculate default points based on verse reference
 function calculateDefaultPoints(reference: string): { first: number; repeat: number } {
@@ -159,8 +160,16 @@ export async function POST(request: NextRequest) {
       
       console.log(`Memory item not found, attempting to create for reference: ${reference}`);
       
-      // Fetch verse from Bible API (ESV only)
-      const verseData = await fetchBibleVerse(reference, 'ESV');
+      const { data: settings } = await supabase
+        .from('settings')
+        .select('bible_version')
+        .limit(1)
+        .single();
+
+      const bibleVersion = settings?.bible_version || DEFAULT_BIBLE_VERSION;
+
+      // Fetch verse from Bible API using the configured version
+      const verseData = await fetchBibleVerse(reference, bibleVersion);
       
       if (!verseData) {
         return NextResponse.json(
@@ -182,7 +191,7 @@ export async function POST(request: NextRequest) {
           points_first: points.first,
           points_repeat: points.repeat,
           active: true, // Auto-activate
-          bible_version: 'ESV',
+          bible_version: bibleVersion,
         })
         .select()
         .single();
