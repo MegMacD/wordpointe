@@ -172,7 +172,7 @@ See the example tests in:
 
 **Auto-Creation** (`records-autocreate.test.ts`):
 - ✅ Create memory items when recording new verses
-- ✅ Fetch from Bible API and store ESV text
+- ✅ Fetch from Bible API and store NIV text
 - ✅ Calculate appropriate points for verse ranges
 - ✅ Handle API failures gracefully
 

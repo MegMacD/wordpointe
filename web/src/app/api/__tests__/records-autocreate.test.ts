@@ -28,7 +28,7 @@ import { requireAuth } from '@/lib/auth';
 import { fetchBibleVerse } from '@/lib/bible-api';
 import { computePoints } from '@/lib/points';
 
-describe.skip('POST /api/records - Auto-create verses', () => {
+describe('POST /api/records - Auto-create verses', () => {
   // Skipped - POST import causes Request error without proper Next.js server environment
   let mockSupabase: any;
 
@@ -64,7 +64,7 @@ describe.skip('POST /api/records - Auto-create verses', () => {
     (fetchBibleVerse as jest.Mock).mockResolvedValueOnce({
       text: 'For God so loved the world...',
       reference: 'John 3:16',
-      version: 'ESV'
+      version: 'NIV'
     });
 
     // Mock: successful insert of new memory item
@@ -76,7 +76,7 @@ describe.skip('POST /api/records - Auto-create verses', () => {
         text: 'For God so loved the world...',
         points_first: 10,
         points_repeat: 5,
-        bible_version: 'ESV'
+        bible_version: 'NIV'
       },
       error: null
     });
@@ -93,20 +93,20 @@ describe.skip('POST /api/records - Auto-create verses', () => {
       error: null
     });
 
-    const request = new NextRequest('http://localhost/api/records', {
+
+    const response = await fetch('/api/records', {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         user_id: 'user-123',
         memory_item_id: 'John 3:16',
         record_type: 'first'
       })
     });
-
-    const response = await POST(request);
     const data = await response.json();
 
     expect(response.status).toBe(201);
-    expect(fetchBibleVerse).toHaveBeenCalledWith('John 3:16', 'ESV');
+    expect(fetchBibleVerse).toHaveBeenCalledWith('John 3:16', 'NIV');
     expect(data.points_awarded).toBe(10);
   });
 
@@ -120,16 +120,16 @@ describe.skip('POST /api/records - Auto-create verses', () => {
     // Mock: Bible API returns null (verse not found)
     (fetchBibleVerse as jest.Mock).mockResolvedValueOnce(null);
 
-    const request = new NextRequest('http://localhost/api/records', {
+
+    const response = await fetch('/api/records', {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         user_id: 'user-123',
         memory_item_id: 'Invalid 999:999',
         record_type: 'first'
       })
     });
-
-    const response = await POST(request);
     const data = await response.json();
 
     expect(response.status).toBe(404);
@@ -162,44 +162,53 @@ describe.skip('POST /api/records - Auto-create verses', () => {
       error: null
     });
 
-    const request = new NextRequest('http://localhost/api/records', {
+
+    const response = await fetch('/api/records', {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         user_id: 'user-123',
         memory_item_id: 'existing-verse-id',
         record_type: 'first'
       })
     });
-
-    const response = await POST(request);
     const data = await response.json();
 
     expect(response.status).toBe(201);
     expect(fetchBibleVerse).not.toHaveBeenCalled(); // Should not fetch if item exists
   });
 
-  it('should calculate points for verse ranges', async () => {
+  it('should use default points from settings', async () => {
     // Mock: memory item not found
     mockSupabase.single.mockResolvedValueOnce({
       error: { message: 'Not found' },
       data: null
     });
 
-    // Mock: Bible API returns verse range
-    (fetchBibleVerse as jest.Mock).mockResolvedValueOnce({
-      text: 'The Lord is my shepherd...',
-      reference: 'Psalm 23:1-6',
-      version: 'ESV'
+    // Mock: settings with default points
+    mockSupabase.single.mockResolvedValueOnce({
+      data: {
+        default_points_first: 15,
+        default_points_repeat: 8
+      },
+      error: null
     });
 
-    // Mock: successful insert with higher points for range
+    // Mock: Bible API returns verse
+    (fetchBibleVerse as jest.Mock).mockResolvedValueOnce({
+      text: 'For God so loved the world...',
+      reference: 'John 3:16',
+      version: 'NIV'
+    });
+
+    // Mock: successful insert with settings-based points
     mockSupabase.single.mockResolvedValueOnce({
       data: {
         id: 'new-verse-id',
         type: 'verse',
-        reference: 'Psalm 23:1-6',
-        points_first: 20, // Higher points for 6 verses
-        points_repeat: 10
+        reference: 'John 3:16',
+        points_first: 15,
+        points_repeat: 8
       },
       error: null
     });
@@ -208,39 +217,39 @@ describe.skip('POST /api/records - Auto-create verses', () => {
     mockSupabase.single.mockResolvedValueOnce({
       data: {
         id: 'record-id',
-        points_awarded: 20
+        points_awarded: 15
       },
       error: null
     });
 
-    const request = new NextRequest('http://localhost/api/records', {
+
+    const response = await fetch('/api/records', {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         user_id: 'user-123',
-        memory_item_id: 'Psalm 23:1-6',
+        memory_item_id: 'John 3:16',
         record_type: 'first'
       })
     });
-
-    const response = await POST(request);
     const data = await response.json();
 
     expect(response.status).toBe(201);
-    expect(data.points_awarded).toBe(20);
+    expect(data.points_awarded).toBe(15);
   });
 
-  it('should store verses in ESV version', async () => {
+  it('should store verses in NIV version', async () => {
     // Mock: memory item not found
     mockSupabase.single.mockResolvedValueOnce({
       error: { message: 'Not found' },
       data: null
     });
 
-    // Mock: Bible API returns ESV verse
+    // Mock: Bible API returns NIV verse
     (fetchBibleVerse as jest.Mock).mockResolvedValueOnce({
       text: 'For God so loved the world...',
       reference: 'John 3:16',
-      version: 'ESV'
+      version: 'NIV'
     });
 
     // Capture the insert call
@@ -260,8 +269,10 @@ describe.skip('POST /api/records - Auto-create verses', () => {
       error: null
     });
 
-    const request = new NextRequest('http://localhost/api/records', {
+
+    await fetch('/api/records', {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         user_id: 'user-123',
         memory_item_id: 'John 3:16',
@@ -269,9 +280,7 @@ describe.skip('POST /api/records - Auto-create verses', () => {
       })
     });
 
-    await POST(request);
-
-    expect(insertedData.bible_version).toBe('ESV');
-    expect(fetchBibleVerse).toHaveBeenCalledWith('John 3:16', 'ESV');
+    expect(insertedData.bible_version).toBe('NIV');
+    expect(fetchBibleVerse).toHaveBeenCalledWith('John 3:16', 'NIV');
   });
 });

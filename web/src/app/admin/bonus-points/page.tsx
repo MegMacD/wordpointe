@@ -20,7 +20,7 @@ function BonusPointsPageContent() {
   }, []);
 
   const fetchUsers = async () => {
-    const res = await fetch('/api/users');
+    const res = await fetch('/api/users?pageSize=1000');
     const data = await res.json();
     if (res.ok) {
       setUsers(data.items || []);

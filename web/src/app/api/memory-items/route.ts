@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-server';
 import { requireAdmin } from '@/lib/auth';
 import { MemoryItem } from '@/lib/types';
+import { validateBibleReference } from '@/lib/bible-api';
 
 export async function GET(request: NextRequest) {
   try {
@@ -67,6 +68,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Normalize verse references to ensure consistency
+    let normalizedReference = reference.trim();
+    if (type === 'verse') {
+      const validation = validateBibleReference(reference.trim());
+      if (!validation.isValid) {
+        return NextResponse.json(
+          { error: validation.error || 'Invalid verse reference format' },
+          { status: 400 }
+        );
+      }
+      normalizedReference = validation.normalized!;
+    }
+
     // Get default points from settings if not provided
     let finalPointsFirst = points_first;
     let finalPointsRepeat = points_repeat;
@@ -86,11 +100,45 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Check for existing item (active or inactive)
+    const { data: existingItem } = await supabase
+      .from('memory_items')
+      .select('*')
+      .eq('reference', normalizedReference)
+      .single();
+
+    if (existingItem) {
+      if (existingItem.active) {
+        return NextResponse.json(
+          { error: 'A memory item with this reference already exists and is active.' },
+          { status: 409 }
+        );
+      } else {
+        // Reactivate the item
+        const { data: reactivated, error: reactivateError } = await supabase
+          .from('memory_items')
+          .update({
+            active: true,
+            text,
+            points_first: finalPointsFirst,
+            points_repeat: finalPointsRepeat,
+          })
+          .eq('id', existingItem.id)
+          .select()
+          .single();
+        if (reactivateError) {
+          throw reactivateError;
+        }
+        return NextResponse.json(reactivated as MemoryItem, { status: 200 });
+      }
+    }
+
+    // No existing item, create new
     const { data, error } = await supabase
       .from('memory_items')
       .insert({
         type,
-        reference,
+        reference: normalizedReference,
         text,
         points_first: finalPointsFirst,
         points_repeat: finalPointsRepeat,

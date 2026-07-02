@@ -189,14 +189,14 @@ Work through these scenarios and note any issues, questions, or suggestions.
 1. On Record Memory page
 2. Select a Bible verse from the dropdown (e.g., "John 3:16")
 3. Look for the **"View in:"** dropdown that appears
-4. Change from **ESV (Stored)** to **NIV**
+4. Change from **NIV (Stored)** to **ESV**
 5. Watch the verse text change
 6. Try other versions: KJV, NKJV, NLT, NASB
 
 **Expected Result:**
 - ✅ Verse text changes to selected translation
 - ✅ Loading state while fetching
-- ✅ ESV is clearly marked as the stored version
+- ✅ NIV is clearly marked as the stored version
 - ✅ Helper text explains what you're viewing
 
 **Questions:**
@@ -346,7 +346,7 @@ Work through these scenarios and note any issues, questions, or suggestions.
    - Type: Verse
    - Reference: Type **"Romans 12:2"**
    - Notice: Verse text auto-fetches from Bible API
-   - Bible Version: ESV (default)
+   - Bible Version: NIV (default)
    - Points First: 10
    - Points Repeat: 5
    - Active: Checked

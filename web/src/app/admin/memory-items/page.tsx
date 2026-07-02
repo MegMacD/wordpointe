@@ -18,6 +18,7 @@ function MemoryItemsPageContent() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchItems();
@@ -74,6 +75,7 @@ function MemoryItemsPageContent() {
 
   const handleSubmitForm = async (formData: Partial<MemoryItem>) => {
     setFormLoading(true);
+    setFormError(null); // Clear any previous form errors
     try {
       const url = editingItem ? `/api/memory-items/${editingItem.id}` : '/api/memory-items';
       const method = editingItem ? 'PATCH' : 'POST';
@@ -92,13 +94,15 @@ function MemoryItemsPageContent() {
         fetchItems();
         setShowAddForm(false);
         setEditingItem(null);
+        setFormError(null);
         showMessage('success', `Memory item ${editingItem ? 'updated' : 'created'} successfully`);
       } else {
-        showMessage('error', data.error || `Failed to ${editingItem ? 'update' : 'create'} memory item`);
+        // Set form error instead of showing message
+        setFormError(data.error || `Failed to ${editingItem ? 'update' : 'create'} memory item`);
       }
     } catch (error) {
       console.error('Failed to submit form:', error);
-      showMessage('error', `Failed to ${editingItem ? 'update' : 'create'} memory item`);
+      setFormError(`Failed to ${editingItem ? 'update' : 'create'} memory item`);
     } finally {
       setFormLoading(false);
     }
@@ -131,6 +135,7 @@ function MemoryItemsPageContent() {
   const handleCancelForm = () => {
     setShowAddForm(false);
     setEditingItem(null);
+    setFormError(null);
   };
 
   // Extract unique Bible books from items
@@ -398,6 +403,8 @@ function MemoryItemsPageContent() {
           onSubmit={handleSubmitForm}
           onCancel={handleCancelForm}
           isLoading={formLoading}
+          apiError={formError}
+          onClearError={() => setFormError(null)}
         />
       )}
     </div>

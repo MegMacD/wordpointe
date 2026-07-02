@@ -107,13 +107,13 @@ export function validateBibleReference(reference: string): {
   normalized?: string;
   error?: string;
 } {
-  // Match patterns like "John 3:16" or "1 John 2:15-17"
-  const match = reference.match(/^([1-3]?\s?[A-Za-z\s]+)\s+(\d+):(\d+(?:-\d+)?)$/);
+  // Match patterns like "John 3:16" (single verse only)
+  const match = reference.match(/^([1-3]?\s?[A-Za-z\s]+)\s+(\d+):(\d+)$/);
   
   if (!match) {
     return { 
       isValid: false, 
-      error: 'Format should be like "John 3:16" or "Psalm 23:1-6"' 
+      error: 'Format should be like "John 3:16"' 
     };
   }
   
@@ -203,11 +203,11 @@ export function getBookSuggestions(input: string): string[] {
 
 /**
  * Parse Bible reference into components
- * Examples: "John 3:16", "Genesis 1:1-3", "Psalm 23:1-6"
+ * Example: "John 3:16"
  */
 function parseReference(reference: string): { book: string; chapter: number; verse: string } | null {
-  // Match patterns like "John 3:16" or "1 John 2:15-17"
-  const match = reference.match(/^([1-3]?\s?[A-Za-z]+)\s+(\d+):(\d+(?:-\d+)?)$/);
+  // Match patterns like "John 3:16" (single verse only)
+  const match = reference.match(/^([1-3]?\s?[A-Za-z]+)\s+(\d+):(\d+)$/);
   if (!match) return null;
   
   return {
@@ -300,13 +300,13 @@ async function fetchFromBibleAPI(reference: string): Promise<BibleVerse | null> 
   try {
     // bible-api.com uses natural references like "john 3:16"
     const encodedRef = encodeURIComponent(reference);
-    const response = await fetch(`https://bible-api.com/${encodedRef}`, {
-      next: { revalidate: 3600 } // Cache for 1 hour
-    });
+    const response = await fetch(`https://bible-api.com/${encodedRef}`);
     
     if (!response.ok) return null;
     
     const data = await response.json();
+    
+    if (!data || !data.text) return null;
     
     return {
       reference: data.reference,
@@ -371,8 +371,7 @@ async function fetchFromAPIBible(reference: string, version: string = 'KJV'): Pr
       {
         headers: {
           'api-key': apiKey
-        },
-        next: { revalidate: 3600 } // Cache for 1 hour
+        }
       }
     );
     
@@ -387,6 +386,11 @@ async function fetchFromAPIBible(reference: string, version: string = 'KJV'): Pr
     const text = data.data?.content
       ?.replace(/\s+/g, ' ')
       .trim();
+    
+    if (!text) {
+      // If no text, fall back to bible-api.com
+      return fetchFromBibleAPI(reference);
+    }
     
     return {
       reference: data.data?.reference || reference,

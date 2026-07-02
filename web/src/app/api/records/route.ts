@@ -3,29 +3,8 @@ import { getSupabaseAdmin } from '@/lib/supabase-server';
 import { requireAuth } from '@/lib/auth';
 import { computePoints } from '@/lib/points';
 import { VerseRecord } from '@/lib/types';
-import { fetchBibleVerse } from '@/lib/bible-api';
+import { fetchBibleVerse, validateBibleReference } from '@/lib/bible-api';
 import { DEFAULT_BIBLE_VERSION } from '@/lib/bible-version';
-
-// Helper to calculate default points based on verse reference
-function calculateDefaultPoints(reference: string): { first: number; repeat: number } {
-  // Check if it's a range (e.g., "John 3:16-18" or "Psalm 23:1-6")
-  const isRange = reference.includes('-') && reference.match(/\d+-\d+/);
-  
-  let basePoints = 10; // Default base points
-  
-  if (isRange) {
-    const match = reference.match(/(\d+)-(\d+)/);
-    if (match) {
-      const verseCount = parseInt(match[2]) - parseInt(match[1]) + 1;
-      basePoints = Math.min(10 + (verseCount * 2), 30); // Cap at 30
-    }
-  }
-  
-  return {
-    first: basePoints,
-    repeat: Math.ceil(basePoints / 2)
-  };
-}
 
 export async function GET(request: NextRequest) {
   try {
@@ -156,57 +135,87 @@ export async function POST(request: NextRequest) {
 
     if (memoryItem.error || !memoryItem.data) {
       // Memory item doesn't exist - this might be a verse reference that needs to be created
-      const reference = memory_item_id;
-      
-      console.log(`Memory item not found, attempting to create for reference: ${reference}`);
-      
-      const { data: settings } = await supabase
-        .from('settings')
-        .select('bible_version')
-        .limit(1)
-        .single();
+      let reference = memory_item_id;
 
-      const bibleVersion = settings?.bible_version || DEFAULT_BIBLE_VERSION;
-
-      // Fetch verse from Bible API using the configured version
-      const verseData = await fetchBibleVerse(reference, bibleVersion);
-      
-      if (!verseData) {
-        return NextResponse.json(
-          { error: 'Memory item not found and could not fetch verse from API' },
-          { status: 404 }
-        );
+      // Normalize the reference if it's a verse
+      const validation = validateBibleReference(reference);
+      if (validation.isValid) {
+        reference = validation.normalized!;
       }
-      
-      // Calculate default points
-      const points = calculateDefaultPoints(reference);
-      
-      // Create the memory item
-      const { data: newItem, error: createError } = await supabase
+
+      // Check for inactive item with same reference
+      const { data: inactiveItem } = await supabase
         .from('memory_items')
-        .insert({
-          type: 'verse',
-          reference: reference,
-          text: verseData.text,
-          points_first: points.first,
-          points_repeat: points.repeat,
-          active: true, // Auto-activate
-          bible_version: bibleVersion,
-        })
-        .select()
+        .select('*')
+        .eq('reference', reference)
+        .eq('active', false)
         .single();
-      
-      if (createError) {
-        console.error('Failed to create memory item:', createError);
-        return NextResponse.json(
-          { error: 'Failed to create memory item for verse' },
-          { status: 500 }
-        );
+      if (inactiveItem) {
+        // Reactivate the item
+        const { data: reactivated, error: reactivateError } = await supabase
+          .from('memory_items')
+          .update({ active: true })
+          .eq('id', inactiveItem.id)
+          .select()
+          .single();
+        if (reactivateError) {
+          return NextResponse.json(
+            { error: 'Failed to reactivate memory item for verse' },
+            { status: 500 }
+          );
+        }
+        memoryItem.data = reactivated;
+        memoryItem.error = null;
+      } else {
+        // Create new item
+        console.log(`Memory item not found, attempting to create for reference: ${reference}`);
+
+        const { data: settings } = await supabase
+          .from('settings')
+          .select('bible_version, default_points_first, default_points_repeat')
+          .single();
+
+        const bibleVersion = settings?.bible_version || DEFAULT_BIBLE_VERSION;
+
+        // Fetch verse from Bible API using configured default version
+        const verseData = await fetchBibleVerse(reference, bibleVersion);
+        if (!verseData) {
+          return NextResponse.json(
+            { error: 'Memory item not found and could not fetch verse from API' },
+            { status: 404 }
+          );
+        }
+
+        const points = {
+          first: settings?.default_points_first ?? 10,
+          repeat: settings?.default_points_repeat ?? 5
+        };
+
+        // Create the memory item
+        const { data: newItem, error: createError } = await supabase
+          .from('memory_items')
+          .insert({
+            type: 'verse',
+            reference: reference,
+            text: verseData.text,
+            points_first: points.first,
+            points_repeat: points.repeat,
+            active: true, // Auto-activate
+            bible_version: bibleVersion,
+          })
+          .select()
+          .single();
+        if (createError) {
+          console.error('Failed to create memory item:', createError);
+          return NextResponse.json(
+            { error: 'Failed to create memory item for verse' },
+            { status: 500 }
+          );
+        }
+        console.log(`Created memory item for ${reference}`);
+        memoryItem.data = newItem;
+        memoryItem.error = null;
       }
-      
-      console.log(`Created memory item for ${reference}`);
-      memoryItem.data = newItem;
-      memoryItem.error = null;
     }
 
     // Compute points (server-side logic for flexibility)

@@ -19,7 +19,7 @@
 - Error monitoring and logs surfacing
 
 ## v0.4 – Content & Catalog
-- ✅ Bible API integration with auto-creation (ESV)
+- ✅ Bible API integration with auto-creation (NIV)
 - ✅ On-demand verse fetching and storage
 
 ## v0.5 – Accounts & RLS
@@ -58,6 +58,11 @@
 - Multi-class/organizations with scoping
 - Charts/visual dashboards
 - Offline-capable PWA mode
+- **Junior Kids Simplified Verses**
+  - Add optional simplified/shorter text column for verses
+  - Target younger kids who need easier versions
+  - Functions same as regular verse (same points structure)
+  - Wait and evaluate actual need before implementation
 
 ## Backlog (prioritized)
 1) Duplicate detection on user add (string similarity)
