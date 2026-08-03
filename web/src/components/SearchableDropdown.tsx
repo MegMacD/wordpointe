@@ -68,7 +68,7 @@ export default function SearchableDropdown({
   const totalFilteredCount = filteredOptions.length;
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
         setSearch('');
@@ -77,7 +77,11 @@ export default function SearchableDropdown({
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
   }, []);
 
   useEffect(() => {
@@ -181,7 +185,7 @@ export default function SearchableDropdown({
         onKeyDown={handleKeyDown}
         disabled={disabled}
         className={`
-          relative w-full rounded-xl border-2 border-gray-200 bg-white pl-4 pr-10 py-2.5 text-left shadow-sm 
+          relative w-full rounded-xl border-2 border-gray-200 bg-white pl-4 pr-10 py-3 text-left shadow-sm 
           focus:border-[#B5CED8] focus:outline-none focus:ring-2 focus:ring-[#B5CED8]/20
           ${disabled ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-50'}
         `}
@@ -213,7 +217,7 @@ export default function SearchableDropdown({
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder={searchPlaceholder}
-                className="w-full rounded-lg border-2 border-gray-200 pl-9 pr-3 py-2 text-sm text-gray-900 focus:border-[#B5CED8] focus:outline-none focus:ring-2 focus:ring-[#B5CED8]/20"
+                className="w-full rounded-lg border-2 border-gray-200 pl-9 pr-3 py-2 text-base text-gray-900 focus:border-[#B5CED8] focus:outline-none focus:ring-2 focus:ring-[#B5CED8]/20 sm:text-sm"
               />
               <svg className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -226,7 +230,7 @@ export default function SearchableDropdown({
             </div>
           </div>
           
-          <div className="max-h-60 overflow-auto py-1">
+          <div className="max-h-[min(60vh,20rem)] overflow-auto py-1 sm:max-h-60">
             {totalFilteredCount === 0 ? (
               <div className="px-3 py-2 text-sm text-gray-500 text-center">
                 {emptyMessage}
