@@ -13,7 +13,18 @@ npm run test:watch
 
 # Run tests with coverage report
 npm run test:coverage
+
+# Run CI-style checks locally (recommended before merge)
+npm test -- --watchAll=false
+npm run build
 ```
+
+## Current Test Suite Notes
+
+- API integration-style suites that rely on a running Next.js server are currently marked skipped:
+  - `src/app/api/__tests__/bible-verse.test.ts`
+  - `src/app/api/__tests__/records-autocreate.test.ts`
+- Their underlying logic is covered in unit tests (for example `src/lib/__tests__/bible-api.test.ts` and points/auth/user route tests).
 
 ## Test Structure
 

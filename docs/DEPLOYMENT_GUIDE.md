@@ -82,6 +82,7 @@ You'll need these values from your Supabase dashboard:
    | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anon key |
    | `SUPABASE_SERVICE_ROLE_KEY` | Your Supabase service role key |
    | `ADMIN_SHARED_SECRET` | Your generated random secret |
+   | `WARMUP_SECRET` | Random secret used by `/api/warmup` |
 
 6. Click **"Deploy"**
 
@@ -115,6 +116,7 @@ vercel env add NEXT_PUBLIC_SUPABASE_URL
 vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY
 vercel env add SUPABASE_SERVICE_ROLE_KEY
 vercel env add ADMIN_SHARED_SECRET
+vercel env add WARMUP_SECRET
 
 # Deploy to production
 vercel --prod
@@ -136,6 +138,23 @@ Once deployed, Vercel will give you a URL like: `https://wordpointe-xxxxx.vercel
    - Navigate to Admin → Adjust Points
    - Try granting bonus points
 6. **Check points calculation**: Verify points show correctly on Users page
+7. **Warmup endpoint check**:
+   - Confirm `WARMUP_SECRET` is set in Vercel
+   - Call `/api/warmup` with header `x-warmup-secret: <your-secret>`
+   - Expect JSON response with `ok: true`
+
+---
+
+## Step 4.5: Configure Warmup Workflow (GitHub Actions)
+
+Set these repository secrets in GitHub:
+
+1. Go to **GitHub → Repo → Settings → Secrets and variables → Actions**
+2. Add:
+   - `WARMUP_URL` = `https://your-app.vercel.app/api/warmup`
+   - `WARMUP_SECRET` = same value as Vercel `WARMUP_SECRET`
+   - `APP_BASE_URL` = `https://your-app.vercel.app` (optional)
+3. Run workflow **Supabase Warmup** manually once (`workflow_dispatch`) to verify.
 
 ---
 
@@ -209,6 +228,9 @@ Once deployed, Vercel will give you a URL like: `https://wordpointe-xxxxx.vercel
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public client key | Supabase Dashboard → Settings → API → Project API keys → anon/public |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server-side admin key | Supabase Dashboard → Settings → API → Project API keys → service_role |
 | `ADMIN_SHARED_SECRET` | Admin route protection | Generate a random string (see Step 2) |
+| `WARMUP_SECRET` | Protects `/api/warmup` endpoint | Generate random string; set in Vercel only |
+| `WARMUP_URL` | GitHub workflow target URL | GitHub Actions secret (`https://<app>/api/warmup`) |
+| `APP_BASE_URL` | Base URL for read-only smoke calls | GitHub Actions secret (`https://<app>`) |
 
 ---
 

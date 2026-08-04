@@ -68,3 +68,19 @@ See `../docs/auth-setup.md` for complete setup instructions.
 - Spend points with undo support
 - View users and their points
 - Admin: Manage memory items, settings, reports
+
+## Supabase Warmup (Free Tier)
+
+To reduce cold starts and provide steady free-tier activity signals, this project includes a warmup endpoint at `/api/warmup` and a read-only scheduled smoke workflow.
+
+1. Add a server environment variable in your deployed app:
+   - `WARMUP_SECRET` = any strong random string
+2. Set GitHub repository secrets used by the workflow:
+   - `WARMUP_URL` = full warmup URL (example: `https://your-app.vercel.app/api/warmup`)
+   - `WARMUP_SECRET` = same value as app `WARMUP_SECRET`
+   - `APP_BASE_URL` (optional) = app base URL (example: `https://your-app.vercel.app`)
+3. The scheduled workflow is at `.github/workflows/supabase-warmup.yml` and runs:
+   - Daily low-cost read-only API activity checks
+   - Extra Sunday pre-warm run
+
+The smoke workflow only calls read endpoints (`/api/users`, `/api/memory-items`, `/api/leaderboard`, `/api/records`) and does not change data.

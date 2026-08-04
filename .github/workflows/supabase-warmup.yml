@@ -1,0 +1,57 @@
+name: Supabase Warmup
+
+on:
+  schedule:
+    # Daily low-cost read-only activity
+    - cron: '0 14 * * *'
+    # Extra pre-warm on Sundays before typical usage
+    - cron: '0 12 * * 0'
+  workflow_dispatch:
+
+jobs:
+  activity-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run read-only activity checks
+        env:
+          WARMUP_URL: ${{ secrets.WARMUP_URL }}
+          WARMUP_SECRET: ${{ secrets.WARMUP_SECRET }}
+          APP_BASE_URL: ${{ secrets.APP_BASE_URL }}
+        run: |
+          if [ -z "$WARMUP_URL" ]; then
+            echo "Missing required secret: WARMUP_URL"
+            exit 1
+          fi
+
+          if [ -z "$APP_BASE_URL" ]; then
+            APP_BASE_URL="${WARMUP_URL%/api/warmup}"
+          fi
+
+          hit() {
+            local url="$1"
+            local header="$2"
+
+            if [ -n "$header" ]; then
+              curl --fail --silent --show-error \
+                --retry 4 \
+                --retry-delay 8 \
+                -H "$header" \
+                "$url" > /dev/null
+            else
+              curl --fail --silent --show-error \
+                --retry 4 \
+                --retry-delay 8 \
+                "$url" > /dev/null
+            fi
+          }
+
+          SINCE_30_DAYS="$(date -u -d '30 days ago' +%Y-%m-%dT%H:%M:%SZ)"
+
+          hit "$WARMUP_URL" "x-warmup-secret: $WARMUP_SECRET"
+          hit "$APP_BASE_URL/api/users?page=1&pageSize=20" ""
+          hit "$APP_BASE_URL/api/memory-items?active=true" ""
+          hit "$APP_BASE_URL/api/leaderboard?view=all-time" ""
+          hit "$APP_BASE_URL/api/leaderboard?view=month" ""
+          hit "$APP_BASE_URL/api/records?since=$SINCE_30_DAYS" ""
+
+          echo "Read-only activity smoke checks completed successfully"
