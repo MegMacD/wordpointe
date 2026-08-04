@@ -22,12 +22,16 @@ export async function GET(request: NextRequest) {
 
     const usersWithDetails = (users || []).map((user) => {
       const breakdown = pointBreakdowns.get(user.id);
+      const totalEarned = breakdown?.totalEarned ?? 0;
+      const totalSpent = breakdown?.totalSpent ?? 0;
+      const bonusPoints = breakdown?.bonusPoints ?? 0;
 
       return {
         ...user,
-        total_earned: breakdown?.totalEarned ?? 0,
-        total_spent: breakdown?.totalSpent ?? 0,
-        total_bonus: breakdown?.bonusPoints ?? 0,
+        current_points: totalEarned + bonusPoints - totalSpent,
+        total_earned: totalEarned,
+        total_spent: totalSpent,
+        total_bonus: bonusPoints,
       };
     });
 
