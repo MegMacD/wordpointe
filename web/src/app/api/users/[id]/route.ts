@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-server';
 import { requireAuth } from '@/lib/auth';
 import { User, UserWithPoints } from '@/lib/types';
+import { getCurrentPoints } from '@/lib/points';
 
 export async function GET(
   request: NextRequest,
@@ -25,16 +26,9 @@ export async function GET(
       );
     }
 
-    // Get current points
-    const { data: pointsData } = await supabase
-      .from('user_points_summary')
-      .select('current_points')
-      .eq('id', id)
-      .single();
-
     const result: UserWithPoints = {
       ...(user as User),
-      current_points: pointsData?.current_points ?? 0,
+      current_points: await getCurrentPoints(supabase, id),
     };
 
     return NextResponse.json(result);

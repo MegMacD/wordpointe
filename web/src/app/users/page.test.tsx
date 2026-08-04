@@ -60,7 +60,10 @@ describe('UsersPage', () => {
     render(<UsersPage />);
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith('/api/users?page=1&pageSize=20');
+      expect(global.fetch).toHaveBeenCalledWith(
+        '/api/users?page=1&pageSize=20',
+        expect.objectContaining({ signal: expect.any(Object) })
+      );
     });
 
     expect(await screen.findByText('Showing 1-1 of 25 users')).toBeTruthy();
@@ -103,7 +106,10 @@ describe('UsersPage', () => {
     render(<UsersPage />);
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith('/api/users?page=1&pageSize=20');
+      expect(global.fetch).toHaveBeenCalledWith(
+        '/api/users?page=1&pageSize=20',
+        expect.objectContaining({ signal: expect.any(Object) })
+      );
     });
 
     // Wait for the user list to appear
@@ -115,7 +121,10 @@ describe('UsersPage', () => {
 
     // Wait for the second page fetch to resolve and render the new user
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith('/api/users?page=2&pageSize=20');
+      expect(global.fetch).toHaveBeenCalledWith(
+        '/api/users?page=2&pageSize=20',
+        expect.objectContaining({ signal: expect.any(Object) })
+      );
     });
 
     await waitFor(() => {

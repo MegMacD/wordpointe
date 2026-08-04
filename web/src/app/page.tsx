@@ -7,21 +7,21 @@ function HomeContent() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       {/* Hero Section */}
-      <div className="mb-8 overflow-hidden rounded-3xl bg-gradient-to-br from-[#B5CED8] via-[#D1DA8A] to-[#DFA574] p-8 shadow-lg sm:p-12">
-        <div className="flex items-center space-x-4">
-          <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-white/30 backdrop-blur-sm shadow-md">
-            <svg className="h-12 w-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+      <div className="mb-8 overflow-hidden rounded-3xl bg-gradient-to-br from-[#B5CED8] via-[#D1DA8A] to-[#DFA574] p-6 shadow-lg sm:p-12">
+        <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:items-center sm:gap-4 sm:text-left">
+          <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-white/30 backdrop-blur-sm shadow-md sm:h-20 sm:w-20">
+            <svg className="h-10 w-10 text-white sm:h-12 sm:w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
             </svg>
           </div>
           <div>
-            <h1 className="mb-2 text-4xl font-bold text-white sm:text-5xl font-[family-name:var(--font-quicksand)]">
+            <h1 className="mb-2 text-3xl font-bold text-white sm:text-5xl font-[family-name:var(--font-quicksand)]">
               Word Pointe
             </h1>
-            <p className="text-lg text-white/90">
+            <p className="text-base text-white/90 sm:text-lg">
               Helping kids hide God's Word in their hearts
             </p>
-            <p className="text-base text-white/80">
+            <p className="text-sm text-white/80 sm:text-base">
               Track verses, celebrate progress, grow in faith
             </p>
           </div>

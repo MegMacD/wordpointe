@@ -33,8 +33,9 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: "cover",
   themeColor: "#2563eb",
 };
 
@@ -44,12 +45,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
+        suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} ${quicksand.variable} antialiased`}
       >
         <Nav />
-        <main className="min-h-screen bg-gray-50">{children}</main>
+        <main className="min-h-screen bg-gray-50 pb-[env(safe-area-inset-bottom)]">{children}</main>
       </body>
     </html>
   );
