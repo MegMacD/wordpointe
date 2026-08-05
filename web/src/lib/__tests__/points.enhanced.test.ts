@@ -164,6 +164,16 @@ describe('Points Library', () => {
   describe('getCurrentPoints', () => {
     it('should fetch current points for a user', async () => {
       mockSupabaseClient.from.mockImplementation((table: string) => {
+        if (table === 'users') {
+          return {
+            select: jest.fn().mockReturnThis(),
+            eq: jest.fn().mockResolvedValue({
+              data: [{ total_points: 0 }],
+              error: null,
+            }),
+          };
+        }
+
         if (table === 'verse_records') {
           return {
             select: jest.fn().mockReturnThis(),
@@ -205,6 +215,44 @@ describe('Points Library', () => {
       expect(mockSupabaseClient.from).toHaveBeenCalledWith('verse_records');
       expect(mockSupabaseClient.from).toHaveBeenCalledWith('bonus_records');
       expect(mockSupabaseClient.from).toHaveBeenCalledWith('spend_records');
+    });
+
+    it('should include legacy total_points in current balance', async () => {
+      mockSupabaseClient.from.mockImplementation((table: string) => {
+        if (table === 'users') {
+          return {
+            select: jest.fn().mockReturnThis(),
+            eq: jest.fn().mockResolvedValue({
+              data: [{ total_points: 200 }],
+              error: null,
+            }),
+          };
+        }
+
+        if (table === 'spend_records') {
+          return {
+            select: jest.fn().mockReturnThis(),
+            eq: jest.fn().mockReturnValue({
+              eq: jest.fn().mockResolvedValue({
+                data: [{ points_spent: 50 }],
+                error: null,
+              }),
+            }),
+          };
+        }
+
+        return {
+          select: jest.fn().mockReturnThis(),
+          eq: jest.fn().mockResolvedValue({
+            data: [],
+            error: null,
+          }),
+        };
+      });
+
+      const points = await getCurrentPoints(mockSupabaseClient, 'legacy-user');
+
+      expect(points).toBe(150);
     });
 
     it('should return 0 for user not found', async () => {
@@ -321,6 +369,16 @@ describe('Points Library', () => {
 
     it('should handle negative points', async () => {
       mockSupabaseClient.from.mockImplementation((table: string) => {
+        if (table === 'users') {
+          return {
+            select: jest.fn().mockReturnThis(),
+            eq: jest.fn().mockResolvedValue({
+              data: [{ total_points: 0 }],
+              error: null,
+            }),
+          };
+        }
+
         if (table === 'verse_records') {
           return {
             select: jest.fn().mockReturnThis(),
