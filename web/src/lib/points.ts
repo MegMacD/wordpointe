@@ -46,7 +46,11 @@ export async function getCurrentPoints(
   supabase: ReturnType<typeof import('./supabase-server').getSupabaseAdmin>,
   userId: string
 ): Promise<number> {
-  const [verseResult, bonusResult, spendResult] = await Promise.all([
+  const [legacyResult, verseResult, bonusResult, spendResult] = await Promise.all([
+    supabase
+      .from('users')
+      .select('total_points')
+      .eq('id', userId),
     supabase
       .from('verse_records')
       .select('points_awarded')
@@ -62,15 +66,21 @@ export async function getCurrentPoints(
       .eq('undone', false),
   ]);
 
-  if (verseResult.error || bonusResult.error || spendResult.error) {
-    return 0;
-  }
+  const legacyPoints = legacyResult.error
+    ? 0
+    : ((legacyResult.data || [])[0]?.total_points || 0);
 
-  const versePoints = (verseResult.data || []).reduce((sum, record: { points_awarded: number | null }) => sum + (record.points_awarded || 0), 0);
-  const bonusPoints = (bonusResult.data || []).reduce((sum, record: { points_awarded: number | null }) => sum + (record.points_awarded || 0), 0);
-  const totalSpent = (spendResult.data || []).reduce((sum, record: { points_spent: number | null }) => sum + (record.points_spent || 0), 0);
+  const versePoints = verseResult.error
+    ? 0
+    : (verseResult.data || []).reduce((sum, record: { points_awarded: number | null }) => sum + (record.points_awarded || 0), 0);
+  const bonusPoints = bonusResult.error
+    ? 0
+    : (bonusResult.data || []).reduce((sum, record: { points_awarded: number | null }) => sum + (record.points_awarded || 0), 0);
+  const totalSpent = spendResult.error
+    ? 0
+    : (spendResult.data || []).reduce((sum, record: { points_spent: number | null }) => sum + (record.points_spent || 0), 0);
 
-  return versePoints + bonusPoints - totalSpent;
+  return legacyPoints + versePoints + bonusPoints - totalSpent;
 }
 
 export async function getUserPointBreakdowns(
@@ -78,6 +88,7 @@ export async function getUserPointBreakdowns(
   userIds: string[]
 ): Promise<Map<string, UserPointBreakdown>> {
   const breakdowns = new Map<string, UserPointBreakdown>();
+  const legacyPointsByUser = new Map<string, number>();
 
   if (userIds.length === 0) {
     return breakdowns;
@@ -101,7 +112,11 @@ export async function getUserPointBreakdowns(
     return emptyBreakdown;
   };
 
-  const [verseResult, bonusResult, spendResult] = await Promise.all([
+  const [legacyResult, verseResult, bonusResult, spendResult] = await Promise.all([
+    supabase
+      .from('users')
+      .select('id, total_points')
+      .in('id', userIds),
     supabase
       .from('verse_records')
       .select('user_id, points_awarded')
@@ -117,27 +132,37 @@ export async function getUserPointBreakdowns(
       .eq('undone', false),
   ]);
 
-  if (verseResult.error || bonusResult.error || spendResult.error) {
-    return breakdowns;
+  if (!legacyResult.error) {
+    (legacyResult.data || []).forEach((row: { id: string; total_points: number | null }) => {
+      createBreakdown(row.id);
+      legacyPointsByUser.set(row.id, row.total_points || 0);
+    });
   }
 
-  (verseResult.data || []).forEach((record: { user_id: string; points_awarded: number | null }) => {
-    const breakdown = createBreakdown(record.user_id);
-    breakdown.versePoints += record.points_awarded || 0;
-  });
+  if (!verseResult.error) {
+    (verseResult.data || []).forEach((record: { user_id: string; points_awarded: number | null }) => {
+      const breakdown = createBreakdown(record.user_id);
+      breakdown.versePoints += record.points_awarded || 0;
+    });
+  }
 
-  (bonusResult.data || []).forEach((record: { user_id: string; points_awarded: number | null }) => {
-    const breakdown = createBreakdown(record.user_id);
-    breakdown.bonusPoints += record.points_awarded || 0;
-  });
+  if (!bonusResult.error) {
+    (bonusResult.data || []).forEach((record: { user_id: string; points_awarded: number | null }) => {
+      const breakdown = createBreakdown(record.user_id);
+      breakdown.bonusPoints += record.points_awarded || 0;
+    });
+  }
 
-  (spendResult.data || []).forEach((record: { user_id: string; points_spent: number | null }) => {
-    const breakdown = createBreakdown(record.user_id);
-    breakdown.totalSpent += record.points_spent || 0;
-  });
+  if (!spendResult.error) {
+    (spendResult.data || []).forEach((record: { user_id: string; points_spent: number | null }) => {
+      const breakdown = createBreakdown(record.user_id);
+      breakdown.totalSpent += record.points_spent || 0;
+    });
+  }
 
-  for (const breakdown of breakdowns.values()) {
-    breakdown.totalEarned = breakdown.versePoints + breakdown.bonusPoints;
+  for (const [userId, breakdown] of breakdowns.entries()) {
+    const legacyPoints = legacyPointsByUser.get(userId) || 0;
+    breakdown.totalEarned = legacyPoints + breakdown.versePoints + breakdown.bonusPoints;
     breakdown.currentPoints = breakdown.totalEarned - breakdown.totalSpent;
   }
 
