@@ -6,15 +6,23 @@ import AuthGuard from '@/components/AuthGuard';
 
 function ReportsPageContent() {
   const [users, setUsers] = useState<UserSummary[]>([]);
+  const [allUsersForPrint, setAllUsersForPrint] = useState<UserSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [totalUsers, setTotalUsers] = useState(0);
+  const [overallTotalUsers, setOverallTotalUsers] = useState(0);
+  const [overallUsersWithPoints, setOverallUsersWithPoints] = useState(0);
+  const [overallSystemPoints, setOverallSystemPoints] = useState(0);
   const [generatedAt, setGeneratedAt] = useState('');
 
   useEffect(() => {
     fetchUsers(currentPage);
   }, [currentPage, pageSize]);
+
+  useEffect(() => {
+    fetchOverallSummary();
+  }, []);
 
   useEffect(() => {
     const now = new Date();
@@ -30,6 +38,18 @@ function ReportsPageContent() {
       setTotalUsers(data.total || 0);
     }
     setLoading(false);
+  };
+
+  const fetchOverallSummary = async () => {
+    const res = await fetch('/api/users?pageSize=all');
+    const data = await res.json();
+    if (res.ok) {
+      const allUsers = (data.items || []) as UserSummary[];
+      setAllUsersForPrint(allUsers);
+      setOverallTotalUsers(allUsers.length);
+      setOverallUsersWithPoints(allUsers.filter((user) => user.current_points > 0).length);
+      setOverallSystemPoints(allUsers.reduce((sum, user) => sum + user.current_points, 0));
+    }
   };
 
   const totalPages = Math.ceil(totalUsers / pageSize);
@@ -57,7 +77,11 @@ function ReportsPageContent() {
     window.location.href = `/api/reports/user-history-csv/${userId}`;
   };
 
-  const handlePrint = () => {
+  const handlePrint = async () => {
+    // Ensure print view always has the complete user list.
+    if (allUsersForPrint.length === 0 || allUsersForPrint.length < overallTotalUsers) {
+      await fetchOverallSummary();
+    }
     window.print();
   };
 
@@ -67,12 +91,12 @@ function ReportsPageContent() {
         {/* Print Header */}
         <div className="print-header">
           <div className="mb-6 flex items-start gap-3">
-            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#DFA574] to-[#C88A5E] shadow-md">
+            <div className="print-header-icon flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#DFA574] to-[#C88A5E] shadow-md">
               <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 font-[family-name:var(--font-quicksand)] leading-tight">
+            <h1 className="print-title text-2xl sm:text-3xl font-bold text-gray-900 font-[family-name:var(--font-quicksand)] leading-tight">
               Word Pointe Points Report
             </h1>
           </div>
@@ -99,10 +123,10 @@ function ReportsPageContent() {
         </div>
 
         {/* Statistics Summary */}
-        <div className="mb-6 grid grid-cols-2 gap-4 rounded-2xl border-2 border-gray-200 bg-gradient-to-br from-gray-50 to-white p-6 md:grid-cols-4">
+        <div className="mb-6 grid grid-cols-1 gap-4 rounded-2xl border-2 border-gray-200 bg-gradient-to-br from-gray-50 to-white p-6 sm:grid-cols-3">
           <div className="text-center">
             <div className="text-3xl font-bold text-[#B5CED8]">
-              {users.length}
+              {overallTotalUsers}
             </div>
             <div className="text-sm font-medium text-gray-600">
               Total Users
@@ -110,7 +134,7 @@ function ReportsPageContent() {
           </div>
           <div className="text-center">
             <div className="text-3xl font-bold text-[#D1DA8A]">
-              {users.filter(u => u.current_points > 0).length}
+              {overallUsersWithPoints}
             </div>
             <div className="text-sm font-medium text-gray-600">
               Users with Points
@@ -118,15 +142,7 @@ function ReportsPageContent() {
           </div>
           <div className="text-center">
             <div className="text-3xl font-bold text-[#DFA574]">
-              {users.reduce((sum, u) => sum + u.current_points, 0)}
-            </div>
-            <div className="text-sm font-medium text-gray-600">
-              Current Points
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-gray-700">
-              {users.reduce((sum, u) => sum + u.current_points, 0)}
+              {overallSystemPoints}
             </div>
             <div className="text-sm font-medium text-gray-600">
               Total System Points
@@ -165,7 +181,7 @@ function ReportsPageContent() {
         ) : users.length === 0 ? (
           <div className="text-center text-gray-600">No users found</div>
         ) : (
-          <div className="overflow-x-auto rounded-2xl border-2 border-gray-200">
+          <div className="print-hide overflow-x-auto rounded-2xl border-2 border-gray-200">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gradient-to-r from-[#DFA574]/10 to-[#DFA574]/5">
                 <tr>
@@ -214,6 +230,44 @@ function ReportsPageContent() {
             </table>
           </div>
         )}
+
+        {/* Print-only table always includes all users */}
+        <div className="print-only overflow-x-auto rounded-2xl border-2 border-gray-200">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gradient-to-r from-[#DFA574]/10 to-[#DFA574]/5">
+              <tr>
+                <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider text-gray-700">
+                  Name
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider text-gray-700">
+                  Role
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider text-gray-700">
+                  Current Points
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 bg-white">
+              {allUsersForPrint.map((user) => (
+                <tr key={`print-${user.id}`} className="hover:bg-gray-50">
+                  <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
+                    {user.name}
+                  </td>
+                  <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                    {user.is_leader ? 'Leader' : 'Student'}
+                  </td>
+                  <td className={`whitespace-nowrap px-6 py-4 text-sm font-semibold ${
+                    user.current_points > 50 ? 'text-green-600' :
+                    user.current_points === 0 ? 'text-gray-400' :
+                    'text-gray-900'
+                  }`}>
+                    {user.current_points}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
         {/* Pagination Controls - Bottom */}
         {totalUsers > 0 && (
@@ -265,10 +319,10 @@ function ReportsPageContent() {
         <div className="mt-6 border-t pt-4 text-sm text-gray-600">
           <div className="flex justify-between">
             <div>
-              Report includes {users.length} users ({users.filter(u => u.is_leader).length} leaders, {users.filter(u => !u.is_leader).length} students)
+              Showing page {currentPage} of {Math.max(1, totalPages)} ({users.length} users on this page, {overallTotalUsers} total users)
             </div>
             <div>
-              Total System Points: {users.reduce((sum, u) => sum + u.current_points, 0)}
+              Total System Points: {overallSystemPoints}
             </div>
           </div>
         </div>

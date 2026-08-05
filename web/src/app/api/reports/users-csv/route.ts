@@ -23,15 +23,18 @@ export async function GET(request: NextRequest) {
     const usersWithDetails = (users || []).map((user) => {
       const breakdown = pointBreakdowns.get(user.id);
       const totalEarned = breakdown?.totalEarned ?? 0;
-      const totalSpent = breakdown?.totalSpent ?? 0;
+      const versePoints = breakdown?.versePoints ?? 0;
       const bonusPoints = breakdown?.bonusPoints ?? 0;
+      const legacyPoints = Math.max(0, totalEarned - versePoints - bonusPoints);
+      const adjustmentPoints = bonusPoints + legacyPoints;
+      const totalSpent = breakdown?.totalSpent ?? 0;
 
       return {
         ...user,
-        current_points: totalEarned + bonusPoints - totalSpent,
-        total_earned: totalEarned,
+        current_points: breakdown?.currentPoints ?? 0,
+        total_earned: versePoints,
         total_spent: totalSpent,
-        total_bonus: bonusPoints,
+        total_bonus: adjustmentPoints,
       };
     });
 
