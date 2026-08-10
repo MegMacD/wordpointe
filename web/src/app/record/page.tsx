@@ -200,7 +200,7 @@ function RecordPageContent() {
   };
 
   const fetchUsers = async () => {
-    const res = await fetch('/api/users?pageSize=1000');
+    const res = await fetch('/api/users?pageSize=all');
     const data = await res.json();
     if (res.ok) {
       // Map display_accommodation_note to displayAccommodationNote for all users

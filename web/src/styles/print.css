@@ -1,5 +1,9 @@
 /* Print styles for reports page */
 @media print {
+  .print-only {
+    display: block !important;
+  }
+
   /* Hide navigation and unnecessary elements */
   .print-hide,
   nav,
@@ -78,8 +82,19 @@
 
   /* Report metadata */
   .print-header {
-    margin-bottom: 30px;
-    text-align: center;
+    margin-bottom: 14px;
+    text-align: left;
+  }
+
+  .print-header-icon {
+    display: none !important;
+  }
+
+  .print-title {
+    font-size: 16pt !important;
+    font-weight: 600 !important;
+    margin: 0 !important;
+    text-align: left !important;
   }
 
   .print-date {
@@ -158,4 +173,8 @@
   .rounded-md {
     border-radius: 0 !important;
   }
+}
+
+.print-only {
+  display: none;
 }

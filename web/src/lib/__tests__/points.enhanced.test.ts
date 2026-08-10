@@ -1,19 +1,14 @@
 import { computePoints, getCurrentPoints } from '@/lib/points';
 
 // Mock Supabase
-let mockSupabaseData: any = null;
-let mockSupabaseError: any = null;
-
 const mockSupabaseClient: any = {
   from: jest.fn().mockReturnThis(),
   select: jest.fn().mockReturnThis(),
   eq: jest.fn().mockReturnThis(),
   gte: jest.fn().mockReturnThis(),
   order: jest.fn().mockReturnThis(),
-  single: jest.fn(() => Promise.resolve({
-    data: mockSupabaseData,
-    error: mockSupabaseError,
-  })),
+  in: jest.fn().mockReturnThis(),
+  then: jest.fn(),
 };
 
 jest.mock('@/lib/supabase-server', () => ({
@@ -23,8 +18,6 @@ jest.mock('@/lib/supabase-server', () => ({
 describe('Points Library', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSupabaseData = null;
-    mockSupabaseError = null;
   });
 
   describe('computePoints', () => {
@@ -170,17 +163,120 @@ describe('Points Library', () => {
 
   describe('getCurrentPoints', () => {
     it('should fetch current points for a user', async () => {
-      mockSupabaseData = { current_points: 150 };
+      mockSupabaseClient.from.mockImplementation((table: string) => {
+        if (table === 'users') {
+          return {
+            select: jest.fn().mockReturnThis(),
+            eq: jest.fn().mockResolvedValue({
+              data: [{ total_points: 0 }],
+              error: null,
+            }),
+          };
+        }
+
+        if (table === 'verse_records') {
+          return {
+            select: jest.fn().mockReturnThis(),
+            eq: jest.fn().mockResolvedValue({
+              data: [{ points_awarded: 100 }],
+              error: null,
+            }),
+          };
+        }
+
+        if (table === 'bonus_records') {
+          return {
+            select: jest.fn().mockReturnThis(),
+            eq: jest.fn().mockResolvedValue({
+              data: [{ points_awarded: 60 }],
+              error: null,
+            }),
+          };
+        }
+
+        if (table === 'spend_records') {
+          return {
+            select: jest.fn().mockReturnThis(),
+            eq: jest.fn().mockReturnValue({
+              eq: jest.fn().mockResolvedValue({
+                data: [{ points_spent: 10 }],
+                error: null,
+              }),
+            }),
+          };
+        }
+
+        return mockSupabaseClient;
+      });
 
       const points = await getCurrentPoints(mockSupabaseClient, 'user-1');
 
       expect(points).toBe(150);
-      expect(mockSupabaseClient.select).toHaveBeenCalledWith('current_points');
-      expect(mockSupabaseClient.eq).toHaveBeenCalledWith('id', 'user-1');
+      expect(mockSupabaseClient.from).toHaveBeenCalledWith('verse_records');
+      expect(mockSupabaseClient.from).toHaveBeenCalledWith('bonus_records');
+      expect(mockSupabaseClient.from).toHaveBeenCalledWith('spend_records');
+    });
+
+    it('should include legacy total_points in current balance', async () => {
+      mockSupabaseClient.from.mockImplementation((table: string) => {
+        if (table === 'users') {
+          return {
+            select: jest.fn().mockReturnThis(),
+            eq: jest.fn().mockResolvedValue({
+              data: [{ total_points: 200 }],
+              error: null,
+            }),
+          };
+        }
+
+        if (table === 'spend_records') {
+          return {
+            select: jest.fn().mockReturnThis(),
+            eq: jest.fn().mockReturnValue({
+              eq: jest.fn().mockResolvedValue({
+                data: [{ points_spent: 50 }],
+                error: null,
+              }),
+            }),
+          };
+        }
+
+        return {
+          select: jest.fn().mockReturnThis(),
+          eq: jest.fn().mockResolvedValue({
+            data: [],
+            error: null,
+          }),
+        };
+      });
+
+      const points = await getCurrentPoints(mockSupabaseClient, 'legacy-user');
+
+      expect(points).toBe(150);
     });
 
     it('should return 0 for user not found', async () => {
-      mockSupabaseError = { code: 'PGRST116' };
+      mockSupabaseClient.from.mockImplementation((table: string) => {
+        if (table === 'spend_records') {
+          return {
+            select: jest.fn().mockReturnThis(),
+            eq: jest.fn().mockReturnValue({
+              eq: jest.fn().mockResolvedValue({
+                data: [],
+                error: { message: 'Database connection failed' },
+              }),
+            }),
+          };
+        }
+
+        return {
+          select: jest.fn().mockReturnThis(),
+          eq: jest.fn().mockResolvedValue({
+            data: [],
+            error: { message: 'Database connection failed' },
+          }),
+        };
+      });
 
       const points = await getCurrentPoints(mockSupabaseClient, 'non-existent-user');
 
@@ -188,7 +284,27 @@ describe('Points Library', () => {
     });
 
     it('should return 0 for null points', async () => {
-      mockSupabaseData = { current_points: null };
+      mockSupabaseClient.from.mockImplementation((table: string) => {
+        if (table === 'spend_records') {
+          return {
+            select: jest.fn().mockReturnThis(),
+            eq: jest.fn().mockReturnValue({
+              eq: jest.fn().mockResolvedValue({
+                data: [{ points_spent: null }],
+                error: null,
+              }),
+            }),
+          };
+        }
+
+        return {
+          select: jest.fn().mockReturnThis(),
+          eq: jest.fn().mockResolvedValue({
+            data: [],
+            error: null,
+          }),
+        };
+      });
 
       const points = await getCurrentPoints(mockSupabaseClient, 'user-1');
 
@@ -196,7 +312,27 @@ describe('Points Library', () => {
     });
 
     it('should handle database errors', async () => {
-      mockSupabaseError = { message: 'Database connection failed' };
+      mockSupabaseClient.from.mockImplementation((table: string) => {
+        if (table === 'spend_records') {
+          return {
+            select: jest.fn().mockReturnThis(),
+            eq: jest.fn().mockReturnValue({
+              eq: jest.fn().mockResolvedValue({
+                data: null,
+                error: { message: 'Database connection failed' },
+              }),
+            }),
+          };
+        }
+
+        return {
+          select: jest.fn().mockReturnThis(),
+          eq: jest.fn().mockResolvedValue({
+            data: null,
+            error: { message: 'Database connection failed' },
+          }),
+        };
+      });
 
       const points = await getCurrentPoints(mockSupabaseClient, 'user-1');
 
@@ -204,7 +340,27 @@ describe('Points Library', () => {
     });
 
     it('should handle undefined points field', async () => {
-      mockSupabaseData = {}; // No points field
+      mockSupabaseClient.from.mockImplementation((table: string) => {
+        if (table === 'spend_records') {
+          return {
+            select: jest.fn().mockReturnThis(),
+            eq: jest.fn().mockReturnValue({
+              eq: jest.fn().mockResolvedValue({
+                data: [],
+                error: null,
+              }),
+            }),
+          };
+        }
+
+        return {
+          select: jest.fn().mockReturnThis(),
+          eq: jest.fn().mockResolvedValue({
+            data: [{ points_awarded: undefined }],
+            error: null,
+          }),
+        };
+      });
 
       const points = await getCurrentPoints(mockSupabaseClient, 'user-1');
 
@@ -212,7 +368,51 @@ describe('Points Library', () => {
     });
 
     it('should handle negative points', async () => {
-      mockSupabaseData = { current_points: -50 };
+      mockSupabaseClient.from.mockImplementation((table: string) => {
+        if (table === 'users') {
+          return {
+            select: jest.fn().mockReturnThis(),
+            eq: jest.fn().mockResolvedValue({
+              data: [{ total_points: 0 }],
+              error: null,
+            }),
+          };
+        }
+
+        if (table === 'verse_records') {
+          return {
+            select: jest.fn().mockReturnThis(),
+            eq: jest.fn().mockResolvedValue({
+              data: [{ points_awarded: 10 }],
+              error: null,
+            }),
+          };
+        }
+
+        if (table === 'bonus_records') {
+          return {
+            select: jest.fn().mockReturnThis(),
+            eq: jest.fn().mockResolvedValue({
+              data: [],
+              error: null,
+            }),
+          };
+        }
+
+        if (table === 'spend_records') {
+          return {
+            select: jest.fn().mockReturnThis(),
+            eq: jest.fn().mockReturnValue({
+              eq: jest.fn().mockResolvedValue({
+                data: [{ points_spent: 60 }],
+                error: null,
+              }),
+            }),
+          };
+        }
+
+        return mockSupabaseClient;
+      });
 
       const points = await getCurrentPoints(mockSupabaseClient, 'user-1');
 

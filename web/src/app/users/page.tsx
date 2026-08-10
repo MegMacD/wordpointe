@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { UserSummary } from '@/lib/types';
 import AuthGuard from '@/components/AuthGuard';
@@ -26,6 +26,7 @@ function UsersPageContent() {
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [loading, setLoading] = useState(true);
+  const [isPageLoading, setIsPageLoading] = useState(false);
   const [totalUsers, setTotalUsers] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -39,6 +40,7 @@ function UsersPageContent() {
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const fetchControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     void checkAdmin();
@@ -69,13 +71,29 @@ function UsersPageContent() {
   }, [currentPage, search]);
 
   useEffect(() => {
+    return () => {
+      fetchControllerRef.current?.abort();
+    };
+  }, []);
+
+  useEffect(() => {
     if (showAddForm && allUsers.length === 0) {
       void fetchAllUsers();
     }
   }, [showAddForm, allUsers.length]);
 
   const fetchUsers = async (page = currentPage, query = search) => {
-    setLoading(true);
+    const isInitialLoad = users.length === 0;
+    if (isInitialLoad) {
+      setLoading(true);
+    } else {
+      setIsPageLoading(true);
+    }
+
+    fetchControllerRef.current?.abort();
+    const controller = new AbortController();
+    fetchControllerRef.current = controller;
+
     const params = new URLSearchParams({
       page: String(page),
       pageSize: String(USERS_PAGE_SIZE),
@@ -85,13 +103,26 @@ function UsersPageContent() {
       params.set('q', query);
     }
 
-    const res = await fetch(`/api/users?${params.toString()}`);
-    const data = await res.json();
-    if (res.ok) {
-      setUsers(data.items || []);
-      setTotalUsers(data.total || 0);
+    try {
+      const res = await fetch(`/api/users?${params.toString()}`, {
+        signal: controller.signal,
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setUsers(data.items || []);
+        setTotalUsers(data.total || 0);
+      }
+    } catch (error: any) {
+      if (error?.name !== 'AbortError') {
+        setMessage({ type: 'error', text: 'Failed to load users' });
+        setTimeout(() => setMessage(null), 3000);
+      }
+    } finally {
+      if (!controller.signal.aborted) {
+        setLoading(false);
+        setIsPageLoading(false);
+      }
     }
-    setLoading(false);
   };
 
   const fetchAllUsers = async () => {
@@ -277,9 +308,16 @@ function UsersPageContent() {
   const totalPages = Math.max(1, Math.ceil(totalUsers / USERS_PAGE_SIZE));
   const pageStart = totalUsers === 0 ? 0 : (currentPage - 1) * USERS_PAGE_SIZE + 1;
   const pageEnd = totalUsers === 0 ? 0 : pageStart + users.length - 1;
+  const maxPageButtons = 7;
+  const pageWindowStart = Math.max(1, Math.min(currentPage - Math.floor(maxPageButtons / 2), totalPages - maxPageButtons + 1));
+  const pageWindowEnd = Math.min(totalPages, pageWindowStart + maxPageButtons - 1);
+  const pageNumbers = Array.from(
+    { length: pageWindowEnd - pageWindowStart + 1 },
+    (_, i) => pageWindowStart + i
+  );
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-4 sm:py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto h-[calc(100dvh-4rem)] max-w-7xl overflow-y-auto px-4 py-4 sm:py-8 sm:px-6 lg:px-8">
       <div className="space-y-4 sm:space-y-6">
         {/* Success/Error Messages */}
         {message && (
@@ -631,7 +669,7 @@ function UsersPageContent() {
             </div>
           </div>
 
-          {loading ? (
+          {loading && users.length === 0 ? (
             <div className="text-center py-12 text-gray-600">
               <svg className="mx-auto h-8 w-8 animate-spin text-[#B5CED8]" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -658,40 +696,45 @@ function UsersPageContent() {
                   Page {currentPage} of {totalPages}
                 </p>
               </div>
+              {isPageLoading && (
+                <div className="rounded-xl border border-[#B5CED8]/40 bg-[#F0F7FA] px-3 py-2 text-xs font-medium text-gray-700">
+                  Loading page {currentPage}...
+                </div>
+              )}
               <div className="grid gap-2 sm:gap-3">
                 {users.map((user) => (
                   <div
                     key={user.id}
-                    className="group rounded-2xl border-2 border-gray-200 bg-white p-3 sm:p-4 shadow-sm transition-all hover:shadow-md hover:border-[#B5CED8]/40"
+                    className="group rounded-2xl border-2 border-gray-200 bg-white px-3 py-2.5 sm:px-4 sm:py-3 shadow-sm transition-all hover:shadow-md hover:border-[#B5CED8]/40"
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                       {/* User Info */}
-                      <div className="flex items-center space-x-3 min-w-0">
-                        <div className="flex-shrink-0 flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#B5CED8] to-[#9AB5C1] shadow-sm">
+                      <div className="flex min-w-0 items-center space-x-2.5">
+                        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#B5CED8] to-[#9AB5C1] shadow-sm">
                           {user.emojiIcon ? (
-                            <span className="text-xl">{user.emojiIcon}</span>
+                            <span className="text-base">{user.emojiIcon}</span>
                           ) : (
-                            <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="text-base font-semibold text-gray-900 truncate">
+                            <h3 className="truncate text-sm font-semibold text-gray-900 sm:text-[15px]">
                               {user.name}
                             </h3>
                             {user.is_leader && (
-                              <span className="inline-flex items-center rounded-lg bg-[#B5CED8]/20 px-2 py-0.5 text-xs font-medium text-gray-800 whitespace-nowrap">
+                              <span className="inline-flex items-center whitespace-nowrap rounded-lg bg-[#B5CED8]/20 px-1.5 py-0 text-[11px] font-medium text-gray-800">
                                 Leader
                               </span>
                             )}
                             {isAdmin && user.hasLoginAccess === true && (
                               <span
-                                className="inline-flex items-center gap-1 rounded-lg bg-[#D1DA8A]/25 px-2 py-0.5 text-xs font-medium text-gray-800 whitespace-nowrap"
+                                className="inline-flex items-center gap-1 whitespace-nowrap rounded-lg bg-[#D1DA8A]/25 px-1.5 py-0 text-[11px] font-medium text-gray-800"
                                 title="Login is enabled"
                               >
-                                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                                 </svg>
                                 Login
@@ -705,14 +748,14 @@ function UsersPageContent() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <Link
                           href={`/users/${user.id}`}
-                          className="flex flex-1 items-center justify-center sm:flex-none rounded-xl bg-gradient-to-r from-[#B5CED8] to-[#9AB5C1] px-3 h-11 text-sm font-semibold text-gray-800 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+                          className="flex h-9 flex-1 items-center justify-center rounded-xl bg-gradient-to-r from-[#B5CED8] to-[#9AB5C1] px-3 text-xs font-semibold text-gray-800 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md sm:h-9 sm:flex-none sm:text-sm"
                         >
                           View Details
                         </Link>
                         <button
                           onClick={() => handleEditUser(user)}
                           disabled={actionLoading === user.id}
-                          className="flex-1 sm:flex-none text-center rounded-xl border-2 border-gray-200 bg-white px-3 h-11 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="h-9 flex-1 rounded-xl border-2 border-gray-200 bg-white px-3 text-center text-xs font-medium text-gray-700 transition-all hover:bg-gray-50 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-50 sm:h-9 sm:flex-none sm:text-sm"
                         >
                           {actionLoading === user.id ? (
                             <span className="flex items-center justify-center">
@@ -727,7 +770,7 @@ function UsersPageContent() {
                         </button>
                         <button
                           onClick={() => setDeleteConfirm(user.id)}
-                          className="rounded-xl border-2 border-[#C97435]/30 bg-white px-2.5 h-11 text-sm font-medium text-[#C97435] transition-all hover:bg-[#C97435]/5 hover:border-[#C97435]/50"
+                          className="h-9 rounded-xl border-2 border-[#C97435]/30 bg-white px-2.5 text-sm font-medium text-[#C97435] transition-all hover:border-[#C97435]/50 hover:bg-[#C97435]/5"
                           aria-label="Delete user"
                         >
                           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -739,23 +782,59 @@ function UsersPageContent() {
                   </div>
                 ))}
               </div>
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
-                <button
-                  type="button"
-                  onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-                  disabled={currentPage === 1}
-                  className="rounded-xl border-2 border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Previous
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
-                  disabled={currentPage >= totalPages}
-                  className="rounded-xl bg-gradient-to-r from-[#B5CED8] to-[#9AB5C1] px-4 py-2 text-sm font-semibold text-gray-800 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
-                >
-                  Next
-                </button>
+              <div className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="text-sm text-gray-600">
+                  Page <span className="font-semibold text-gray-800">{currentPage}</span> of <span className="font-semibold text-gray-800">{totalPages}</span>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1 || isPageLoading}
+                    className="rounded-lg border-2 border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-all hover:bg-gray-50 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    First
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                    disabled={currentPage === 1 || isPageLoading}
+                    className="rounded-lg border-2 border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-all hover:bg-gray-50 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Previous
+                  </button>
+                  {pageNumbers.map((pageNum) => (
+                    <button
+                      key={pageNum}
+                      type="button"
+                      onClick={() => setCurrentPage(pageNum)}
+                      disabled={isPageLoading}
+                      className={`min-w-9 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+                        pageNum === currentPage
+                          ? 'bg-gradient-to-r from-[#B5CED8] to-[#9AB5C1] text-gray-800 shadow-sm'
+                          : 'border-2 border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+                      } disabled:cursor-not-allowed disabled:opacity-50`}
+                    >
+                      {pageNum}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                    disabled={currentPage >= totalPages || isPageLoading}
+                    className="rounded-lg border-2 border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-all hover:bg-gray-50 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Next
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage >= totalPages || isPageLoading}
+                    className="rounded-lg border-2 border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-all hover:bg-gray-50 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Last
+                  </button>
+                </div>
               </div>
             </div>
           )}
