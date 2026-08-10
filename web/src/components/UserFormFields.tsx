@@ -94,7 +94,7 @@ export default function UserFormFields({ onSubmit, onCancel, compact = false, ex
   };
 
   return (
-    <div className="space-y-3">
+    <div className={`space-y-3 ${compact ? '' : 'sm:space-y-4'}`}>
       {error && (
         <div className="rounded-xl bg-[#C97435]/10 border border-[#C97435]/30 p-3 text-sm text-gray-800">
           <div className="flex items-center">
@@ -137,17 +137,17 @@ export default function UserFormFields({ onSubmit, onCancel, compact = false, ex
         />
       </div>
 
-      <div className="flex items-center">
-        <input
-          type="checkbox"
-          id="user-is-leader"
-          checked={isLeader}
-          onChange={(e) => setIsLeader(e.target.checked)}
-          className="h-4 w-4 rounded border-gray-300 text-[#D1DA8A] focus:ring-[#D1DA8A]"
-          disabled={loading}
-        />
-        <label htmlFor="user-is-leader" className="ml-2 block text-sm font-medium text-gray-700">
-          This person is a leader
+      <div className="rounded-xl border border-gray-200 bg-white/70 px-3 py-2.5">
+        <label htmlFor="user-is-leader" className="flex min-h-[44px] items-center text-sm font-medium text-gray-700">
+          <input
+            type="checkbox"
+            id="user-is-leader"
+            checked={isLeader}
+            onChange={(e) => setIsLeader(e.target.checked)}
+            className="h-4 w-4 rounded border-gray-300 text-[#D1DA8A] focus:ring-[#D1DA8A]"
+            disabled={loading}
+          />
+          <span className="ml-3 block">This person is a leader</span>
         </label>
       </div>
 
@@ -188,12 +188,12 @@ export default function UserFormFields({ onSubmit, onCancel, compact = false, ex
         </div>
       )}
 
-      <div className="flex justify-end gap-2 pt-2">
+      <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
         {onCancel && (
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-xl border-2 border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-all hover:bg-gray-50 hover:shadow-md min-h-[44px]"
+            className="min-h-[44px] w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-all hover:bg-gray-50 hover:shadow-md sm:w-auto"
             disabled={loading}
           >
             Cancel
@@ -203,7 +203,7 @@ export default function UserFormFields({ onSubmit, onCancel, compact = false, ex
           type="button"
           onClick={handleSubmit}
           disabled={loading || !name.trim()}
-          className="rounded-xl bg-gradient-to-r from-[#D1DA8A] to-[#B8C76E] px-5 py-2.5 text-sm font-semibold text-gray-800 shadow-md transition-all hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-50 disabled:hover:translate-y-0 min-h-[44px]"
+          className="min-h-[44px] w-full rounded-xl bg-gradient-to-r from-[#D1DA8A] to-[#B8C76E] px-5 py-2.5 text-sm font-semibold text-gray-800 shadow-md transition-all hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-50 disabled:hover:translate-y-0 sm:w-auto"
         >
           {loading ? 'Adding...' : 'Add User'}
         </button>

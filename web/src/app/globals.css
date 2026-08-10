@@ -62,9 +62,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
   letter-spacing: -0.011em;
   line-height: 1.7;
-  /* Improve mobile scrolling and touch */
+  min-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
+  overscroll-behavior-y: auto;
+  touch-action: pan-y;
 }
 
 html,
