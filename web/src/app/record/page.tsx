@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { UserSummary, MemoryItem } from '@/lib/types';
 import AuthGuard from '@/components/AuthGuard';
 import UserFormFields from '@/components/UserFormFields';
@@ -40,12 +40,46 @@ function RecordPageContent() {
   const [selectedVersion, setSelectedVersion] = useState<string>(DEFAULT_BIBLE_VERSION);
   const [alternateVerseText, setAlternateVerseText] = useState<string>('');
   const [fetchingAlternateVerse, setFetchingAlternateVerse] = useState(false);
+  const [isKeyboardInputActive, setIsKeyboardInputActive] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+  const customReferenceInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchUsers();
     fetchMemoryItems();
     loadRecentItems();
   }, []);
+
+  const scrollElementIntoView = (element: HTMLElement | null) => {
+    if (!element || typeof window === 'undefined' || typeof element.scrollIntoView !== 'function') return;
+
+    const scrollIntoView = () => {
+      element.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' });
+    };
+
+    window.requestAnimationFrame(scrollIntoView);
+    window.setTimeout(scrollIntoView, 250);
+  };
+
+  const isKeyboardInputElement = (target: EventTarget | null): target is HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement => {
+    if (!(target instanceof HTMLElement)) return false;
+
+    if (target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement) {
+      return true;
+    }
+
+    if (target instanceof HTMLInputElement) {
+      return !['checkbox', 'radio', 'button', 'submit', 'reset'].includes(target.type);
+    }
+
+    return false;
+  };
+
+  useEffect(() => {
+    if (useCustomReference) {
+      scrollElementIntoView(customReferenceInputRef.current);
+    }
+  }, [useCustomReference]);
 
   const loadRecentItems = () => {
     try {
@@ -369,11 +403,11 @@ function RecordPageContent() {
   // Find selected user object after users state initialization
   const selectedUser = users.find(u => u.id === selectedUserId);
   return (
-    <div className="mx-auto max-w-4xl px-4 py-4 sm:px-6 sm:py-8 lg:px-8">
-      <div className="rounded-3xl border border-gray-200 bg-white p-6 sm:p-10 shadow-lg">
+    <div className="mx-auto max-w-4xl px-3 py-3 pb-24 sm:px-6 sm:py-6 sm:pb-8 lg:px-8">
+      <div className="rounded-3xl border border-gray-200 bg-white p-4 shadow-lg sm:p-8 lg:p-10">
         {/* Header with Lime accent */}
-        <div className="mb-6 sm:mb-8">
-          <div className="mb-3 flex items-start gap-3">
+        <div className="mb-5 sm:mb-8">
+          <div className="mb-2 flex items-start gap-3">
             <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#D1DA8A] to-[#B8C76E] shadow-md">
               <svg className="h-7 w-7 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -452,10 +486,28 @@ function RecordPageContent() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form
+          ref={formRef}
+          onSubmit={handleSubmit}
+          onFocusCapture={(event) => {
+            if (isKeyboardInputElement(event.target)) {
+              setIsKeyboardInputActive(true);
+              scrollElementIntoView(event.target as HTMLElement);
+            }
+          }}
+          onBlurCapture={() => {
+            if (typeof window === 'undefined') return;
+            window.requestAnimationFrame(() => {
+              const activeElement = document.activeElement;
+              const stillEditing = formRef.current?.contains(activeElement) && isKeyboardInputElement(activeElement);
+              setIsKeyboardInputActive(Boolean(stillEditing));
+            });
+          }}
+          className="space-y-4 sm:space-y-6"
+        >
           {/* User Selection */}
           <div>
-            <div className="mb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <label className="block text-sm font-semibold text-gray-700">
                 Select User
               </label>
@@ -469,7 +521,7 @@ function RecordPageContent() {
             </div>
 
             {showAddUser && (
-              <div className="mb-4 rounded-2xl border-2 border-[#D1DA8A]/30 bg-[#D1DA8A]/10 p-4">
+              <div className="mb-4 rounded-2xl border-2 border-[#D1DA8A]/30 bg-[#D1DA8A]/10 p-3 sm:p-4">
                 <UserFormFields
                   compact
                   onSubmit={handleAddUser}
@@ -497,11 +549,11 @@ function RecordPageContent() {
             </label>
             
             {/* Quick Filter Buttons */}
-            <div className="mb-3 flex flex-wrap gap-2">
+            <div className="mb-3 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
               <button
                 type="button"
                 onClick={() => setItemFilter('all')}
-                className={`rounded-xl px-3 py-1.5 text-sm font-medium transition-all ${
+                className={`min-h-[44px] rounded-xl px-3 py-2 text-sm font-medium transition-all sm:w-auto ${
                   itemFilter === 'all'
                     ? 'bg-gradient-to-r from-[#D1DA8A] to-[#B8C76E] text-gray-800 shadow-md'
                     : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50'
@@ -512,7 +564,7 @@ function RecordPageContent() {
               <button
                 type="button"
                 onClick={() => setItemFilter('verse')}
-                className={`rounded-xl px-3 py-1.5 text-sm font-medium transition-all ${
+                className={`min-h-[44px] rounded-xl px-3 py-2 text-sm font-medium transition-all sm:w-auto ${
                   itemFilter === 'verse'
                     ? 'bg-gradient-to-r from-[#D1DA8A] to-[#B8C76E] text-gray-800 shadow-md'
                     : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50'
@@ -523,7 +575,7 @@ function RecordPageContent() {
               <button
                 type="button"
                 onClick={() => setItemFilter('custom')}
-                className={`rounded-xl px-3 py-1.5 text-sm font-medium transition-all ${
+                className={`min-h-[44px] rounded-xl px-3 py-2 text-sm font-medium transition-all sm:w-auto ${
                   itemFilter === 'custom'
                     ? 'bg-gradient-to-r from-[#D1DA8A] to-[#B8C76E] text-gray-800 shadow-md'
                     : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50'
@@ -539,7 +591,7 @@ function RecordPageContent() {
                       setSelectedItemId(recentMemoryItems[0].id);
                     }
                   }}
-                  className="rounded-xl px-3 py-1.5 text-sm font-medium bg-[#DFA574]/10 text-[#C88A5E] hover:bg-[#DFA574]/20 transition-all border-2 border-[#DFA574]/30"
+                  className="col-span-2 min-h-[44px] rounded-xl border-2 border-[#DFA574]/30 bg-[#DFA574]/10 px-3 py-2 text-sm font-medium text-[#C88A5E] transition-all hover:bg-[#DFA574]/20 sm:col-span-1"
                 >
                   🕐 Recent ({recentMemoryItems.length})
                 </button>
@@ -581,6 +633,7 @@ function RecordPageContent() {
             {useCustomReference && (
               <div className="mt-3 relative">
                 <input
+                  ref={customReferenceInputRef}
                   type="text"
                   value={customReference}
                   onChange={(e) => {
@@ -608,7 +661,9 @@ function RecordPageContent() {
                     // Delay hiding suggestions to allow clicking them
                     setTimeout(() => setBookSuggestions([]), 200);
                   }}
+                  onFocus={() => scrollElementIntoView(customReferenceInputRef.current)}
                   placeholder="e.g., John 3:16"
+                  inputMode="search"
                   className={`w-full rounded-xl border-2 px-4 py-3 text-gray-900 placeholder-gray-500 transition-all focus:outline-none focus:ring-2 ${
                     referenceError 
                       ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' 
@@ -660,15 +715,15 @@ function RecordPageContent() {
             )}
 
             {selectedItem && (selectedItem.text || fetchedVerseText) && (
-              <div className="mt-3 rounded-2xl bg-gradient-to-r from-[#D1DA8A]/10 to-[#B5CED8]/10 border border-gray-200 p-4 text-sm">
+              <div className="mt-3 rounded-2xl border border-gray-200 bg-gradient-to-r from-[#D1DA8A]/10 to-[#B5CED8]/10 p-3 text-sm sm:p-4">
                 {/* Version Selector for Verses */}
                 {selectedItem.type === 'verse' && selectedItem.reference && (
-                  <div className="mb-3 flex items-center justify-between">
+                  <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <label className="text-xs font-semibold text-gray-700">View in:</label>
                     <select
                       value={selectedVersion}
                       onChange={(e) => setSelectedVersion(e.target.value)}
-                      className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-[#D1DA8A] focus:outline-none focus:ring-2 focus:ring-[#D1DA8A]/20"
+                      className="min-h-[44px] rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-[#D1DA8A] focus:outline-none focus:ring-2 focus:ring-[#D1DA8A]/20 sm:w-auto"
                     >
                       <option value={storedVersion}>{storedVersion} (Stored)</option>
                       <option value="NIV">NIV</option>
@@ -733,7 +788,7 @@ function RecordPageContent() {
           {/* Automatic Record Type Detection */}
           {(checkingRecordType || recordInfo) && selectedUserId && selectedItemId && (
             <div className="rounded-2xl border-2 border-[#D1DA8A]/40 bg-[#D1DA8A]/15 p-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center">
                   {checkingRecordType ? (
                     <>
@@ -757,7 +812,7 @@ function RecordPageContent() {
                   <button
                     type="button"
                     onClick={() => setShowRecordTypeOverride(!showRecordTypeOverride)}
-                    className="text-xs text-gray-600 hover:text-gray-800 underline"
+                    className="self-start text-xs text-gray-600 underline hover:text-gray-800"
                   >
                     {showRecordTypeOverride ? 'Hide override' : 'Need to override?'}
                   </button>
@@ -818,23 +873,25 @@ function RecordPageContent() {
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={loading || !selectedUserId || (!selectedItemId && !customReference)}
-            className="w-full rounded-xl bg-gradient-to-r from-[#D1DA8A] to-[#B8C76E] px-4 py-3 font-semibold text-gray-800 shadow-md transition-all hover:-translate-y-0.5 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
-          >
-            {loading ? (
-              <span className="flex items-center justify-center">
-                <svg className="mr-2 h-5 w-5 animate-spin text-gray-800" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Recording...
-              </span>
-            ) : (
-              'Record Memory'
-            )}
-          </button>
+          <div className={`${isKeyboardInputActive ? 'relative' : 'sticky bottom-0'} z-10 -mx-4 border-t border-gray-200 bg-white/95 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur sm:static sm:mx-0 sm:border-t-0 sm:bg-transparent sm:px-0 sm:py-0 sm:pb-0 sm:backdrop-blur-none`}>
+            <button
+              type="submit"
+              disabled={loading || !selectedUserId || (!selectedItemId && !customReference)}
+              className="w-full rounded-xl bg-gradient-to-r from-[#D1DA8A] to-[#B8C76E] px-4 py-3 font-semibold text-gray-800 shadow-md transition-all hover:-translate-y-0.5 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
+            >
+              {loading ? (
+                <span className="flex items-center justify-center">
+                  <svg className="mr-2 h-5 w-5 animate-spin text-gray-800" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Recording...
+                </span>
+              ) : (
+                'Record Memory'
+              )}
+            </button>
+          </div>
         </form>
       </div>
     </div>
