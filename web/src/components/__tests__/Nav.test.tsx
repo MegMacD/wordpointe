@@ -32,7 +32,7 @@ describe('Nav Component', () => {
       render(<Nav />);
       
       await waitFor(() => {
-        expect(screen.getByText('Login')).toBeTruthy();
+        expect(screen.getAllByText('Login')).toHaveLength(2);
       });
       
       expect(screen.getByText('Word Pointe')).toBeTruthy();

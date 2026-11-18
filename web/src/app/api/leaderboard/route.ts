@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-server';
+import { getUserPointBreakdowns } from '@/lib/points';
 
 export async function GET(req: NextRequest) {
   try {
@@ -69,12 +70,14 @@ export async function GET(req: NextRequest) {
 
       return NextResponse.json({ items: leaderboard });
     } else {
-      // All-time stats from user_points_summary
+      // All-time stats computed from the underlying records so spend totals remain accurate.
       const { data } = await supabase
-        .from('user_points_summary')
-        .select('id, name, is_leader, total_earned, current_points, emojiIcon')
-        .gt('total_earned', 0)
-        .order('total_earned', { ascending: false });
+        .from('users')
+        .select('id, name, is_leader, "emojiIcon"')
+        .order('name', { ascending: true });
+
+      const userIds = (data || []).map(user => user.id);
+      const pointBreakdowns = await getUserPointBreakdowns(supabase, userIds);
 
       // Get verse counts
       const { data: verseCounts } = await supabase
@@ -86,15 +89,23 @@ export async function GET(req: NextRequest) {
         verseCountMap.set(record.user_id, (verseCountMap.get(record.user_id) || 0) + 1);
       });
 
-      const leaderboard = (data || []).map(user => ({
-        user_id: user.id,
-        username: user.name,
-        verse_count: verseCountMap.get(user.id) || 0,
-        total_points: user.total_earned,
-        current_points: user.current_points,
-        is_leader: user.is_leader,
-        emojiIcon: user.emojiIcon,
-      }));
+      const leaderboard = (data || [])
+        .map(user => {
+          const breakdown = pointBreakdowns.get(user.id);
+
+          return {
+            user_id: user.id,
+            username: user.name,
+            verse_count: verseCountMap.get(user.id) || 0,
+            total_points: breakdown?.totalEarned ?? 0,
+            current_points: breakdown?.currentPoints ?? 0,
+            is_leader: user.is_leader,
+            emojiIcon: user.emojiIcon,
+          };
+        })
+        .filter(user => user.total_points > 0);
+
+      leaderboard.sort((a, b) => b.total_points - a.total_points || b.verse_count - a.verse_count);
 
       return NextResponse.json({ items: leaderboard });
     }

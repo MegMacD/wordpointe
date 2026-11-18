@@ -22,6 +22,19 @@ export default function Nav() {
     checkAuth();
   }, []);
 
+  useEffect(() => {
+    setMobileMenuOpen(false);
+    setAdminMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    document.body.style.overflow = mobileMenuOpen ? 'hidden' : '';
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileMenuOpen]);
+
   const checkAuth = async () => {
     const res = await fetch('/api/auth/me');
     const data = await res.json();
@@ -66,7 +79,7 @@ export default function Nav() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
               </div>
-              <span className="text-xl font-bold text-gray-800 font-[family-name:var(--font-quicksand)]">
+              <span className="hidden text-xl font-bold text-gray-800 font-[family-name:var(--font-quicksand)] min-[380px]:block">
                 Word Pointe
               </span>
             </Link>
@@ -164,24 +177,32 @@ export default function Nav() {
           </div>
 
           {/* Mobile menu button */}
-          {user && (
-            <div className="md:hidden">
+          <div className="md:hidden">
+            {user ? (
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="inline-flex items-center justify-center rounded-xl p-2 text-gray-700 transition-colors hover:bg-gray-100"
+                aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
               >
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d={mobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"} />
                 </svg>
               </button>
-            </div>
-          )}
+            ) : (
+              <Link
+                href="/login"
+                className="rounded-xl bg-gradient-to-r from-[#B5CED8] to-[#9AB5C1] px-4 py-2 text-sm font-semibold text-gray-800 shadow-md transition-all hover:shadow-lg"
+              >
+                Login
+              </Link>
+            )}
+          </div>
         </div>
 
         {/* Mobile Navigation Menu */}
         {user && mobileMenuOpen && (
           <div className="border-t border-gray-200 bg-white/95 backdrop-blur-sm md:hidden">
-            <div className="space-y-1 px-2 pb-3 pt-2">
+            <div className="max-h-[calc(100vh-4rem)] space-y-1 overflow-y-auto px-2 pb-3 pt-2">
               {mainLinks.map((link) => (
                 <Link
                   key={link.href}

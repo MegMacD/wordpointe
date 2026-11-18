@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-server';
 import { requireAuth } from '@/lib/auth';
 import { User, UserSummary } from '@/lib/types';
+import { getUserPointBreakdowns } from '@/lib/points';
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,14 +11,17 @@ export async function GET(request: NextRequest) {
     const q = searchParams.get('q') || '';
     const page = parseInt(searchParams.get('page') || '1');
     const pageSizeParam = searchParams.get('pageSize');
-    const pageSize = pageSizeParam
-      ? Math.min(Math.max(parseInt(pageSizeParam, 10) || 20, 1), 100)
-      : null;
+    const pageSize =
+      pageSizeParam === 'all'
+        ? null
+        : pageSizeParam
+          ? Math.min(Math.max(parseInt(pageSizeParam, 10) || 20, 1), 100)
+          : null;
 
-    // Get users with points summary
+    // Get users and then compute points from the underlying tables.
     let query = supabase
-      .from('user_points_summary')
-      .select('*', { count: 'exact' });
+      .from('users')
+      .select('id, name, is_leader, notes, display_accommodation_note, "emojiIcon"', { count: 'exact' });
 
     if (q) {
       query = query.ilike('name', `%${q}%`);
@@ -35,11 +39,32 @@ export async function GET(request: NextRequest) {
       throw error;
     }
 
-    const summaryItems = (data || []) as UserSummary[];
-    let enrichedItems = summaryItems;
+    const baseUsers = (data || []) as Array<{
+      id: string;
+      name: string;
+      is_leader: boolean;
+      notes: string | null;
+      display_accommodation_note?: boolean;
+      emojiIcon?: string;
+    }>;
 
-    if (summaryItems.length > 0) {
-      const userIds = summaryItems.map((item) => item.id);
+    const pointBreakdowns = await getUserPointBreakdowns(
+      supabase,
+      baseUsers.map((user) => user.id)
+    );
+
+    let enrichedItems: UserSummary[] = baseUsers.map((user) => ({
+      id: user.id,
+      name: user.name,
+      is_leader: user.is_leader,
+      notes: user.notes,
+      displayAccommodationNote: user.display_accommodation_note ?? false,
+      emojiIcon: user.emojiIcon,
+      current_points: pointBreakdowns.get(user.id)?.currentPoints ?? 0,
+    }));
+
+    if (baseUsers.length > 0) {
+      const userIds = baseUsers.map((item) => item.id);
       const { data: authRows, error: authError } = await supabase
         .from('users')
         .select('id, password_hash')
@@ -49,7 +74,7 @@ export async function GET(request: NextRequest) {
         const loginAccessById = new Map(
           authRows.map((row: { id: string; password_hash: string | null }) => [row.id, !!row.password_hash])
         );
-        enrichedItems = summaryItems.map((item) => ({
+        enrichedItems = enrichedItems.map((item) => ({
           ...item,
           hasLoginAccess: loginAccessById.get(item.id) ?? false,
         }));

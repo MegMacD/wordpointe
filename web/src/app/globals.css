@@ -64,6 +64,12 @@ body {
   line-height: 1.7;
 }
 
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
 @layer base {
   h1, h2, h3, h4, h5, h6 {
     font-weight: 700;
@@ -161,6 +167,10 @@ select:focus-visible {
   input[type="text"], input[type="number"], input[type="email"], textarea, select {
     min-height: 44px;
     font-size: 16px; /* Prevent zoom on iOS */
+  }
+
+  input[type="search"] {
+    font-size: 16px; /* Prevent zoom on iOS search fields */
   }
   
   /* Better tap highlighting */
