@@ -45,8 +45,15 @@ export default function SearchableDropdown({
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const [resultsMaxHeight, setResultsMaxHeight] = useState(240);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const scrollDropdownIntoView = () => {
+    if (typeof dropdownRef.current?.scrollIntoView === 'function') {
+      dropdownRef.current.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    }
+  };
 
   const selectedOption = options.find(opt => opt.id === value);
 
@@ -88,6 +95,25 @@ export default function SearchableDropdown({
     if (isOpen && searchInputRef.current) {
       searchInputRef.current.focus();
     }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const updateViewportFit = () => {
+      const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+      setResultsMaxHeight(Math.min(320, Math.max(160, Math.round(viewportHeight * 0.4))));
+    };
+
+    updateViewportFit();
+
+    window.addEventListener('resize', updateViewportFit);
+    window.visualViewport?.addEventListener('resize', updateViewportFit);
+
+    return () => {
+      window.removeEventListener('resize', updateViewportFit);
+      window.visualViewport?.removeEventListener('resize', updateViewportFit);
+    };
   }, [isOpen]);
 
   useEffect(() => {
@@ -216,6 +242,7 @@ export default function SearchableDropdown({
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={handleKeyDown}
+                onFocus={scrollDropdownIntoView}
                 placeholder={searchPlaceholder}
                 className="w-full rounded-lg border-2 border-gray-200 pl-9 pr-3 py-2 text-base text-gray-900 focus:border-[#B5CED8] focus:outline-none focus:ring-2 focus:ring-[#B5CED8]/20 sm:text-sm"
               />
@@ -230,7 +257,7 @@ export default function SearchableDropdown({
             </div>
           </div>
           
-          <div className="max-h-[min(60vh,20rem)] overflow-auto py-1 sm:max-h-60">
+          <div className="overflow-auto py-1" style={{ maxHeight: `${resultsMaxHeight}px` }}>
             {totalFilteredCount === 0 ? (
               <div className="px-3 py-2 text-sm text-gray-500 text-center">
                 {emptyMessage}

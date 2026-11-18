@@ -85,20 +85,20 @@ function UserDetailPageContent() {
         </Link>
       </div>
 
-      <div className="rounded-3xl border border-gray-200 bg-white p-6 sm:p-10 shadow-lg">
-        <div className="mb-6 sm:mb-8">
-          <div className="flex items-start gap-3 mb-4">
-            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#B5CED8] to-[#9AB5C1] shadow-md">
+      <div className="rounded-3xl border border-gray-200 bg-white p-4 sm:p-10 shadow-lg">
+        <div className="mb-4 sm:mb-8">
+          <div className="mb-3 flex items-start gap-2 sm:mb-4 sm:gap-3">
+            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#B5CED8] to-[#9AB5C1] shadow-md sm:h-12 sm:w-12 sm:rounded-2xl">
               {user.emojiIcon ? (
-                <span className="text-2xl">{user.emojiIcon}</span>
+                <span className="text-xl sm:text-2xl">{user.emojiIcon}</span>
               ) : (
-                <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <svg className="h-5 w-5 text-white sm:h-7 sm:w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               )}
             </div>
             <div className="min-w-0 flex-1">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 font-[family-name:var(--font-quicksand)] leading-tight">{user.name}</h1>
+              <h1 className="m-0 break-words text-xl sm:text-3xl font-bold text-gray-900 font-[family-name:var(--font-quicksand)] leading-tight">{user.name}</h1>
               {user.is_leader && (
                 <span className="mt-2 inline-flex items-center rounded-xl bg-[#B5CED8]/20 px-3 py-1 text-xs font-medium text-gray-800">
                   Leader

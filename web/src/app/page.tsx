@@ -5,23 +5,23 @@ import AuthGuard from '@/components/AuthGuard';
 
 function HomeContent() {
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-8 lg:px-8">
       {/* Hero Section */}
-      <div className="mb-8 overflow-hidden rounded-3xl bg-gradient-to-br from-[#B5CED8] via-[#D1DA8A] to-[#DFA574] p-6 shadow-lg sm:p-12">
-        <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:items-center sm:gap-4 sm:text-left">
-          <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-white/30 backdrop-blur-sm shadow-md sm:h-20 sm:w-20">
-            <svg className="h-10 w-10 text-white sm:h-12 sm:w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+      <div className="mb-5 overflow-hidden rounded-3xl bg-gradient-to-br from-[#B5CED8] via-[#D1DA8A] to-[#DFA574] p-4 shadow-lg sm:mb-8 sm:p-12">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/30 backdrop-blur-sm shadow-md sm:h-20 sm:w-20 sm:rounded-3xl">
+            <svg className="h-7 w-7 text-white sm:h-12 sm:w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
             </svg>
           </div>
-          <div>
-            <h1 className="mb-2 text-3xl font-bold text-white sm:text-5xl font-[family-name:var(--font-quicksand)]">
+          <div className="min-w-0">
+            <h1 className="mb-1 text-2xl font-bold text-white sm:mb-2 sm:text-5xl font-[family-name:var(--font-quicksand)]">
               Word Pointe
             </h1>
-            <p className="text-base text-white/90 sm:text-lg">
+            <p className="text-sm text-white/90 sm:text-lg">
               Helping kids hide God's Word in their hearts
             </p>
-            <p className="text-sm text-white/80 sm:text-base">
+            <p className="hidden text-base text-white/80 sm:block">
               Track verses, celebrate progress, grow in faith
             </p>
           </div>
@@ -30,8 +30,8 @@ function HomeContent() {
 
       {/* Quick Actions Grid */}
       <div>
-        <h2 className="mb-6 text-2xl font-bold text-gray-900">Quick Actions</h2>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <h2 className="mb-3 text-xl font-bold text-gray-900 sm:mb-6 sm:text-2xl">Quick Actions</h2>
+        <div className="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
           <Link
             href="/record"
             className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-md transition-all hover:-translate-y-2 hover:shadow-xl"

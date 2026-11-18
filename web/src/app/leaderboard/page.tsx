@@ -45,11 +45,11 @@ function LeaderboardPageContent() {
       <div className="mx-auto max-w-5xl">
         {/* Header */}
         <div className="mb-6 sm:mb-8">
-          <div className="mb-4 flex items-start gap-3">
-            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#D1DA8A] to-[#B8C76E] text-2xl shadow-lg">
+          <div className="mb-2 flex items-center gap-2 sm:mb-4 sm:gap-3">
+            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#D1DA8A] to-[#B8C76E] text-xl shadow-lg sm:h-12 sm:w-12 sm:rounded-2xl sm:text-2xl">
               🏆
             </div>
-            <h1 className="text-4xl font-bold text-gray-800 sm:text-5xl font-[family-name:var(--font-quicksand)] leading-tight">
+            <h1 className="m-0 text-2xl font-bold text-gray-800 sm:text-5xl font-[family-name:var(--font-quicksand)] leading-tight">
               Leaderboard
             </h1>
           </div>

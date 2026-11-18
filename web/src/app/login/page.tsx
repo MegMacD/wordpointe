@@ -55,18 +55,18 @@ export default function LoginPage() {
 
   return (
     <div className="mx-auto flex min-h-screen items-center justify-center bg-gradient-to-br from-[#B5CED8]/20 via-[#D1DA8A]/10 to-[#DFA574]/20 px-4">
-      <div className="w-full max-w-md rounded-3xl border border-gray-200 bg-white p-8 shadow-lg sm:p-10">
+      <div className="w-full max-w-md rounded-3xl border border-gray-200 bg-white p-4 shadow-lg sm:p-10">
         {/* Logo/Icon */}
-        <div className="mb-6 flex justify-center">
-          <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-[#B5CED8] to-[#DFA574] shadow-md">
-            <svg className="h-12 w-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+        <div className="mb-3 flex justify-center sm:mb-6">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-[#B5CED8] to-[#DFA574] shadow-md sm:h-20 sm:w-20 sm:rounded-3xl">
+            <svg className="h-5 w-5 text-white sm:h-12 sm:w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
             </svg>
           </div>
         </div>
 
-        <h1 className="mb-2 text-center text-3xl font-bold text-gray-900 font-[family-name:var(--font-quicksand)]">Welcome Back!</h1>
-        <p className="mb-8 text-center text-gray-600">
+        <h1 className="m-0 mb-1 text-center text-xl font-bold text-gray-900 font-[family-name:var(--font-quicksand)] leading-tight sm:mb-2 sm:text-3xl">Welcome Back!</h1>
+        <p className="mb-4 text-center text-sm leading-snug text-gray-600 sm:mb-8 sm:text-base sm:leading-relaxed">
           Sign in to track Bible memory
         </p>
 
