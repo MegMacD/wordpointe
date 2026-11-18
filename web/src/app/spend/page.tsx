@@ -139,18 +139,18 @@ function SpendPageContent() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-4 sm:py-8 sm:px-6 lg:px-8">
-      <div className="rounded-3xl border border-gray-200 bg-white p-6 sm:p-10 shadow-lg">
+      <div className="rounded-3xl border border-gray-200 bg-white p-4 sm:p-10 shadow-lg">
         {/* Header with Peach accent */}
-        <div className="mb-6 sm:mb-8">
-          <div className="mb-3 flex items-start gap-3">
-            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#DFA574] to-[#C88A5E] shadow-md">
-              <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+        <div className="mb-4 sm:mb-8">
+          <div className="mb-1 flex items-center gap-2 sm:mb-2 sm:gap-3">
+            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#DFA574] to-[#C88A5E] shadow-md sm:h-12 sm:w-12 sm:rounded-2xl">
+              <svg className="h-5 w-5 text-white sm:h-7 sm:w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 font-[family-name:var(--font-quicksand)] leading-tight">Spend Points</h1>
+            <h1 className="m-0 text-xl sm:text-3xl font-bold text-gray-900 font-[family-name:var(--font-quicksand)] leading-tight">Spend Points</h1>
           </div>
-          <p className="text-gray-600">Redeem points for rewards and prizes</p>
+          <p className="text-sm leading-snug text-gray-600 sm:text-base sm:leading-relaxed">Redeem points for rewards and prizes</p>
         </div>
 
         {message && (

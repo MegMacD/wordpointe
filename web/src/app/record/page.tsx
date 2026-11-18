@@ -53,12 +53,9 @@ function RecordPageContent() {
   const scrollElementIntoView = (element: HTMLElement | null) => {
     if (!element || typeof window === 'undefined' || typeof element.scrollIntoView !== 'function') return;
 
-    const scrollIntoView = () => {
-      element.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' });
-    };
-
-    window.requestAnimationFrame(scrollIntoView);
-    window.setTimeout(scrollIntoView, 250);
+    window.requestAnimationFrame(() => {
+      element.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    });
   };
 
   const isKeyboardInputElement = (target: EventTarget | null): target is HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement => {
@@ -406,16 +403,16 @@ function RecordPageContent() {
     <div className="mx-auto max-w-4xl px-3 py-3 pb-24 sm:px-6 sm:py-6 sm:pb-8 lg:px-8">
       <div className="rounded-3xl border border-gray-200 bg-white p-4 shadow-lg sm:p-8 lg:p-10">
         {/* Header with Lime accent */}
-        <div className="mb-5 sm:mb-8">
-          <div className="mb-2 flex items-start gap-3">
-            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#D1DA8A] to-[#B8C76E] shadow-md">
-              <svg className="h-7 w-7 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+        <div className="mb-4 sm:mb-8">
+          <div className="mb-1 flex items-center gap-2 sm:mb-2 sm:gap-3">
+            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#D1DA8A] to-[#B8C76E] shadow-md sm:h-12 sm:w-12 sm:rounded-2xl">
+              <svg className="h-5 w-5 text-gray-800 sm:h-7 sm:w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 font-[family-name:var(--font-quicksand)] leading-tight">Record Memory</h1>
+            <h1 className="m-0 text-xl sm:text-3xl font-bold text-gray-900 font-[family-name:var(--font-quicksand)] leading-tight">Record Memory</h1>
           </div>
-          <p className="text-gray-600">Track Bible memory achievements and award points</p>
+          <p className="text-sm leading-snug text-gray-600 sm:text-base sm:leading-relaxed">Track Bible memory achievements and award points</p>
         </div>
 
         {message && (
@@ -490,16 +487,15 @@ function RecordPageContent() {
           ref={formRef}
           onSubmit={handleSubmit}
           onFocusCapture={(event) => {
-            if (isKeyboardInputElement(event.target)) {
+            if (isKeyboardInputElement(event.target) && !(event.target instanceof HTMLSelectElement)) {
               setIsKeyboardInputActive(true);
-              scrollElementIntoView(event.target as HTMLElement);
             }
           }}
           onBlurCapture={() => {
             if (typeof window === 'undefined') return;
             window.requestAnimationFrame(() => {
               const activeElement = document.activeElement;
-              const stillEditing = formRef.current?.contains(activeElement) && isKeyboardInputElement(activeElement);
+              const stillEditing = formRef.current?.contains(activeElement) && isKeyboardInputElement(activeElement) && !(activeElement instanceof HTMLSelectElement);
               setIsKeyboardInputActive(Boolean(stillEditing));
             });
           }}
@@ -507,16 +503,16 @@ function RecordPageContent() {
         >
           {/* User Selection */}
           <div>
-            <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="mb-2 flex items-center justify-between gap-2">
               <label className="block text-sm font-semibold text-gray-700">
                 Select User
               </label>
               <button
                 type="button"
                 onClick={() => setShowAddUser(!showAddUser)}
-                className="text-sm font-medium text-[#B8C76E] hover:text-[#A0B055] transition-colors sm:text-right"
+                className="!min-h-0 whitespace-nowrap rounded-lg px-2 py-1 text-xs font-medium text-[#8A9A3E] hover:bg-[#D1DA8A]/20 transition-colors sm:text-sm"
               >
-                {showAddUser ? '✕ Cancel' : '+ Add New User'}
+                {showAddUser ? '✕ Cancel' : '+ New user'}
               </button>
             </div>
 
@@ -544,44 +540,62 @@ function RecordPageContent() {
 
           {/* Memory Item Selection */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-3">
-              Select Memory Item
-            </label>
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <label className="block text-sm font-semibold text-gray-700">
+                Select Memory Item
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  setUseCustomReference(!useCustomReference);
+                  if (!useCustomReference) {
+                    setSelectedItemId('');
+                    setReferenceError('');
+                  } else {
+                    setCustomReference('');
+                    setBookSuggestions([]);
+                  }
+                }}
+                className="!min-h-0 whitespace-nowrap rounded-lg px-2 py-1 text-xs font-medium text-[#8A9A3E] hover:bg-[#D1DA8A]/20 transition-colors sm:text-sm"
+              >
+                {useCustomReference ? '✕ Use existing' : '+ New verse'}
+              </button>
+            </div>
             
             {/* Quick Filter Buttons */}
-            <div className="mb-3 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+            <div className="mb-3 grid grid-cols-3 gap-1.5 sm:flex sm:flex-wrap sm:gap-2">
               <button
                 type="button"
                 onClick={() => setItemFilter('all')}
-                className={`min-h-[44px] rounded-xl px-3 py-2 text-sm font-medium transition-all sm:w-auto ${
+                className={`min-h-[44px] rounded-xl px-2 py-2 text-xs font-medium transition-all sm:w-auto sm:px-3 sm:text-sm ${
                   itemFilter === 'all'
                     ? 'bg-gradient-to-r from-[#D1DA8A] to-[#B8C76E] text-gray-800 shadow-md'
                     : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50'
                 }`}
               >
-                All Items ({memoryItems.length})
+                All Items<span className="hidden sm:inline"> ({memoryItems.length})</span>
               </button>
               <button
                 type="button"
                 onClick={() => setItemFilter('verse')}
-                className={`min-h-[44px] rounded-xl px-3 py-2 text-sm font-medium transition-all sm:w-auto ${
+                className={`min-h-[44px] rounded-xl px-2 py-2 text-xs font-medium transition-all sm:w-auto sm:px-3 sm:text-sm ${
                   itemFilter === 'verse'
                     ? 'bg-gradient-to-r from-[#D1DA8A] to-[#B8C76E] text-gray-800 shadow-md'
                     : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50'
                 }`}
               >
-                📖 Verses Only ({memoryItems.filter(i => i.type === 'verse').length})
+                <span className="hidden sm:inline">📖 </span>Verses<span className="hidden sm:inline"> Only ({memoryItems.filter(i => i.type === 'verse').length})</span>
               </button>
               <button
                 type="button"
                 onClick={() => setItemFilter('custom')}
-                className={`min-h-[44px] rounded-xl px-3 py-2 text-sm font-medium transition-all sm:w-auto ${
+                className={`min-h-[44px] rounded-xl px-2 py-2 text-xs font-medium transition-all sm:w-auto sm:px-3 sm:text-sm ${
                   itemFilter === 'custom'
                     ? 'bg-gradient-to-r from-[#D1DA8A] to-[#B8C76E] text-gray-800 shadow-md'
                     : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50'
                 }`}
               >
-                📚 Books & More ({memoryItems.filter(i => i.type === 'custom').length})
+                <span className="hidden sm:inline">📚 </span>Books &amp; More<span className="hidden sm:inline"> ({memoryItems.filter(i => i.type === 'custom').length})</span>
               </button>
               {recentMemoryItems.length > 0 && (
                 <button
@@ -591,7 +605,7 @@ function RecordPageContent() {
                       setSelectedItemId(recentMemoryItems[0].id);
                     }
                   }}
-                  className="col-span-2 min-h-[44px] rounded-xl border-2 border-[#DFA574]/30 bg-[#DFA574]/10 px-3 py-2 text-sm font-medium text-[#C88A5E] transition-all hover:bg-[#DFA574]/20 sm:col-span-1"
+                  className="col-span-3 min-h-[44px] rounded-xl border-2 border-[#DFA574]/30 bg-[#DFA574]/10 px-3 py-2 text-sm font-medium text-[#C88A5E] transition-all hover:bg-[#DFA574]/20 sm:col-span-1"
                 >
                   🕐 Recent ({recentMemoryItems.length})
                 </button>
@@ -609,26 +623,6 @@ function RecordPageContent() {
               showCount={false}
               disabled={useCustomReference}
             />
-
-            {/* Custom Verse Reference Input */}
-            <div className="mt-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setUseCustomReference(!useCustomReference);
-                  if (!useCustomReference) {
-                    setSelectedItemId('');
-                    setReferenceError('');
-                  } else {
-                    setCustomReference('');
-                    setBookSuggestions([]);
-                  }
-                }}
-                className="text-sm font-medium text-[#B8C76E] hover:text-[#A0B055] transition-colors"
-              >
-                {useCustomReference ? '✕ Use Existing Items' : '+ Enter New Verse Reference'}
-              </button>
-            </div>
 
             {useCustomReference && (
               <div className="mt-3 relative">
@@ -661,7 +655,6 @@ function RecordPageContent() {
                     // Delay hiding suggestions to allow clicking them
                     setTimeout(() => setBookSuggestions([]), 200);
                   }}
-                  onFocus={() => scrollElementIntoView(customReferenceInputRef.current)}
                   placeholder="e.g., John 3:16"
                   inputMode="search"
                   className={`w-full rounded-xl border-2 px-4 py-3 text-gray-900 placeholder-gray-500 transition-all focus:outline-none focus:ring-2 ${

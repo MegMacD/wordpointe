@@ -5,19 +5,19 @@ import Link from 'next/link';
 
 function HelpPageContent() {
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="rounded-3xl border border-gray-200 bg-white p-6 sm:p-10 shadow-lg">
+    <div className="mx-auto max-w-4xl px-4 py-4 sm:py-8 sm:px-6 lg:px-8">
+      <div className="rounded-3xl border border-gray-200 bg-white p-4 sm:p-10 shadow-lg">
         {/* Header */}
-        <div className="mb-8">
-          <div className="mb-3 flex items-center">
-            <div className="mr-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#B5CED8] to-[#A0B8C2] shadow-md">
-              <svg className="h-7 w-7 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+        <div className="mb-4 sm:mb-8">
+          <div className="mb-1 flex items-center gap-2 sm:mb-2 sm:gap-3">
+            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#B5CED8] to-[#A0B8C2] shadow-md sm:h-12 sm:w-12 sm:rounded-2xl">
+              <svg className="h-5 w-5 text-gray-800 sm:h-7 sm:w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 font-[family-name:var(--font-quicksand)]">Quick Help Guide</h1>
+            <h1 className="m-0 text-xl sm:text-3xl font-bold text-gray-900 font-[family-name:var(--font-quicksand)] leading-tight">Quick Help Guide</h1>
           </div>
-          <p className="text-gray-600">Everything you need to know to get started with Word Pointe</p>
+          <p className="text-sm leading-snug text-gray-600 sm:text-base sm:leading-relaxed">Everything you need to know to get started with Word Pointe</p>
         </div>
 
         {/* Getting Started */}

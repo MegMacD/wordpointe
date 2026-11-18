@@ -162,17 +162,17 @@ function AdminRecordsPageContent() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-4 sm:py-8 sm:px-6 lg:px-8">
-      <div className="rounded-3xl border border-gray-200 bg-white p-6 sm:p-10 shadow-lg">
-        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#B5CED8] to-[#9AB5C1] shadow-md">
-              <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+      <div className="rounded-3xl border border-gray-200 bg-white p-4 sm:p-10 shadow-lg">
+        <div className="mb-4 sm:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+          <div className="flex items-start gap-2 sm:gap-3">
+            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#B5CED8] to-[#9AB5C1] shadow-md sm:h-12 sm:w-12 sm:rounded-2xl">
+              <svg className="h-5 w-5 text-white sm:h-7 sm:w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
             <div className="min-w-0">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 font-[family-name:var(--font-quicksand)] leading-tight">User Records</h1>
-              <p className="mt-1 text-sm text-gray-600">Manage verse and spend records</p>
+              <h1 className="m-0 text-xl sm:text-3xl font-bold text-gray-900 font-[family-name:var(--font-quicksand)] leading-tight">User Records</h1>
+              <p className="mt-1 text-sm leading-snug text-gray-600 sm:text-base sm:leading-relaxed">Manage verse and spend records</p>
             </div>
           </div>
           <button

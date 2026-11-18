@@ -97,31 +97,18 @@ export default function SearchableDropdown({
     if (!isOpen) return;
 
     const updateViewportFit = () => {
-      const dropdown = dropdownRef.current;
-      if (!dropdown || typeof window === 'undefined') return;
-
       const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
-      const rect = dropdown.getBoundingClientRect();
-      const availableSpace = Math.max(viewportHeight - rect.bottom - 24, 160);
-      const nextMaxHeight = Math.min(availableSpace, 320);
-
-      setResultsMaxHeight(Math.max(nextMaxHeight - 72, 120));
-      scrollDropdownIntoView();
+      setResultsMaxHeight(Math.min(320, Math.max(160, Math.round(viewportHeight * 0.4))));
     };
 
-    const rafId = window.requestAnimationFrame(updateViewportFit);
-    const timeoutId = window.setTimeout(updateViewportFit, 250);
+    updateViewportFit();
 
     window.addEventListener('resize', updateViewportFit);
     window.visualViewport?.addEventListener('resize', updateViewportFit);
-    window.visualViewport?.addEventListener('scroll', updateViewportFit);
 
     return () => {
-      window.cancelAnimationFrame(rafId);
-      window.clearTimeout(timeoutId);
       window.removeEventListener('resize', updateViewportFit);
       window.visualViewport?.removeEventListener('resize', updateViewportFit);
-      window.visualViewport?.removeEventListener('scroll', updateViewportFit);
     };
   }, [isOpen]);
 
