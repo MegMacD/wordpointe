@@ -241,12 +241,6 @@ function RecordPageContent() {
     }
   }, [selectedVersion, selectedItem, storedVersion]);
 
-  const handleUserAdded = async () => {
-    setShowAddUser(false);
-    await fetchUsers(); // Refresh the user list
-    // Note: We could auto-select the new user here if needed
-  };
-
   const handleAddUser = async (userData: { name: string; is_leader: boolean; notes: string; emojiIcon?: string }) => {
     setLoading(true);
     try {
@@ -266,7 +260,13 @@ function RecordPageContent() {
       const data = await res.json();
 
       if (res.ok) {
-        await handleUserAdded();
+        setUsers(currentUsers => [...currentUsers, {
+          ...data,
+          current_points: 0,
+          displayAccommodationNote: data.displayAccommodationNote ?? data.display_accommodation_note,
+        }]);
+        setSelectedUserId(data.id);
+        setShowAddUser(false);
         return true;
       } else {
         setMessage({ type: 'error', text: data.error || 'Failed to create user' });
@@ -345,23 +345,9 @@ function RecordPageContent() {
         fetchMemoryItems(); // Refresh items list in case new verse was added
       } else {
         setMessage({ type: 'error', text: data.error || 'Failed to record' });
-        
-        // Clear custom reference on error to allow user to try again
-        if (useCustomReference) {
-          setCustomReference('');
-          setUseCustomReference(false);
-          setReferenceError('');
-        }
       }
     } catch (error) {
       setMessage({ type: 'error', text: 'Network error' });
-      
-      // Clear custom reference on error to allow user to try again
-      if (useCustomReference) {
-        setCustomReference('');
-        setUseCustomReference(false);
-        setReferenceError('');
-      }
     } finally {
       setLoading(false);
     }
@@ -438,9 +424,7 @@ function RecordPageContent() {
                   <p className="font-medium">{message.text}</p>
                   {message.type === 'error' && (
                     <p className="mt-1 text-xs text-gray-600">
-                      {message.text.toLowerCase().includes('already') || message.text.toLowerCase().includes('duplicate') 
-                        ? 'The quick add field has been cleared. Please try a different verse or select from the list below.'
-                        : 'Dismiss this message to try again.'}
+                      Your selections have been kept. Check them and try again.
                     </p>
                   )}
                 </div>
@@ -510,7 +494,7 @@ function RecordPageContent() {
               <button
                 type="button"
                 onClick={() => setShowAddUser(!showAddUser)}
-                className="!min-h-0 whitespace-nowrap rounded-lg px-2 py-1 text-xs font-medium text-[#8A9A3E] hover:bg-[#D1DA8A]/20 transition-colors sm:text-sm"
+                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center whitespace-nowrap rounded-lg px-2 py-1 text-xs font-medium text-[#8A9A3E] hover:bg-[#D1DA8A]/20 transition-colors sm:text-sm"
               >
                 {showAddUser ? '✕ Cancel' : '+ New user'}
               </button>
@@ -556,7 +540,7 @@ function RecordPageContent() {
                     setBookSuggestions([]);
                   }
                 }}
-                className="!min-h-0 whitespace-nowrap rounded-lg px-2 py-1 text-xs font-medium text-[#8A9A3E] hover:bg-[#D1DA8A]/20 transition-colors sm:text-sm"
+                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center whitespace-nowrap rounded-lg px-2 py-1 text-xs font-medium text-[#8A9A3E] hover:bg-[#D1DA8A]/20 transition-colors sm:text-sm"
               >
                 {useCustomReference ? '✕ Use existing' : '+ New verse'}
               </button>
